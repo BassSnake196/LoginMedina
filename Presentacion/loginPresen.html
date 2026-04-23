@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Auth — Guía Completa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+ 
+:root{
+  --bg:#0d0d0d;
+  --surface:#161616;
+  --surface2:#1e1e1e;
+  --border:#2a2a2a;
+  --border2:#333;
+  --text:#f0ede8;
+  --muted:#8a8680;
+  --orange:#ff6b2b;
+  --orange-dim:#ff6b2b22;
+  --orange-mid:#ff6b2b55;
+  --blue:#4a9eff;
+  --blue-dim:#4a9eff18;
+  --green:#4ade80;
+  --green-dim:#4ade8018;
+  --red:#f87171;
+  --red-dim:#f8717118;
+  --yellow:#fbbf24;
+  --yellow-dim:#fbbf2418;
+}
+ 
+html{scroll-behavior:smooth}
+ 
+body{
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:16px;
+}
+ 
+/* ── SIDEBAR ── */
+.sidebar{
+  position:fixed;
+  left:0;top:0;bottom:0;
+  width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:32px 0;
+  overflow-y:auto;
+  z-index:100;
+}
+ 
+.sidebar-logo{
+  padding:0 24px 28px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:20px;
+}
+ 
+.sidebar-logo .fire{
+  font-family:'Syne',sans-serif;
+  font-size:18px;
+  font-weight:800;
+  color:var(--orange);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+ 
+.sidebar-logo .fire svg{width:20px;height:20px;fill:var(--orange)}
+ 
+.sidebar-logo p{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+  letter-spacing:0.5px;
+}
+ 
+.nav-section{
+  padding:0 16px 4px;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:16px;
+  margin-bottom:4px;
+}
+ 
+.nav-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 24px;
+  font-size:13px;
+  color:var(--muted);
+  text-decoration:none;
+  transition:all 0.15s;
+  border-left:2px solid transparent;
+}
+ 
+.nav-link:hover{color:var(--text);background:var(--surface2)}
+.nav-link.active{color:var(--orange);border-left-color:var(--orange);background:var(--orange-dim)}
+ 
+.nav-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:0.5;
+  flex-shrink:0;
+}
+ 
+/* ── MAIN ── */
+.main{
+  margin-left:240px;
+  min-height:100vh;
+}
+ 
+/* ── HERO ── */
+.hero{
+  padding:80px 72px 64px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+ 
+.hero::before{
+  content:'';
+  position:absolute;
+  top:-100px;right:-100px;
+  width:500px;height:500px;
+  background:radial-gradient(circle,var(--orange-dim) 0%,transparent 70%);
+  pointer-events:none;
+}
+ 
+.hero-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--orange);
+  background:var(--orange-dim);
+  border:1px solid var(--orange-mid);
+  padding:4px 12px;
+  border-radius:20px;
+  margin-bottom:24px;
+}
+ 
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:56px;
+  font-weight:800;
+  line-height:1.05;
+  letter-spacing:-1.5px;
+  margin-bottom:20px;
+  max-width:700px;
+}
+ 
+.hero h1 span{color:var(--orange)}
+ 
+.hero p{
+  font-size:17px;
+  color:var(--muted);
+  max-width:560px;
+  line-height:1.7;
+  margin-bottom:40px;
+}
+ 
+.hero-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+ 
+.chip{
+  font-size:12px;
+  font-weight:500;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid var(--border2);
+  color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+}
+ 
+/* ── CONTENT ── */
+.content{padding:0 72px 120px}
+ 
+/* ── SECTION ── */
+.section{
+  padding:64px 0 0;
+  border-top:1px solid var(--border);
+  margin-top:64px;
+}
+ 
+.section:first-child{border-top:none;margin-top:0;padding-top:64px}
+ 
+.section-label{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--orange);
+  margin-bottom:10px;
+}
+ 
+.section h2{
+  font-family:'Syne',sans-serif;
+  font-size:34px;
+  font-weight:700;
+  letter-spacing:-0.8px;
+  margin-bottom:16px;
+  color:var(--text);
+}
+ 
+.section > p, .section > .lead{
+  font-size:16px;
+  color:var(--muted);
+  max-width:680px;
+  margin-bottom:40px;
+  line-height:1.8;
+}
+ 
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:28px 32px;
+  margin-bottom:20px;
+}
+ 
+.card-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+ 
+.card-grid-3{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+ 
+@media(max-width:900px){
+  .card-grid,.card-grid-3{grid-template-columns:1fr}
+}
+ 
+.card h3{
+  font-family:'Syne',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:8px;
+  color:var(--text);
+}
+ 
+.card p{font-size:14px;color:var(--muted);line-height:1.7}
+ 
+.card-icon{
+  width:36px;height:36px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+  font-size:18px;
+}
+ 
+.card-icon.orange{background:var(--orange-dim)}
+.card-icon.blue{background:var(--blue-dim)}
+.card-icon.green{background:var(--green-dim)}
+.card-icon.red{background:var(--red-dim)}
+.card-icon.yellow{background:var(--yellow-dim)}
+ 
+/* ── CODE BLOCK ── */
+.code-block{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:24px;
+  font-family:'JetBrains Mono',monospace;
+}
+ 
+.code-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 18px;
+  border-bottom:1px solid var(--border);
+  background:#1a1a1a;
+}
+ 
+.code-filename{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+ 
+.code-lang{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  background:var(--orange-dim);
+  color:var(--orange);
+}
+ 
+pre{
+  padding:20px 24px;
+  font-size:13px;
+  line-height:1.7;
+  overflow-x:auto;
+  color:#c9c5be;
+}
+ 
+.k{color:#ff6b2b}   /* keyword */
+.s{color:#4ade80}   /* string */
+.c{color:#555}      /* comment */
+.f{color:#4a9eff}   /* function */
+.v{color:#fbbf24}   /* variable */
+.n{color:#c9c5be}   /* normal */
+ 
+/* ── DIAGRAM ── */
+.diagram{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:32px;
+  margin-bottom:24px;
+  overflow-x:auto;
+}
+ 
+.diagram-title{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:24px;
+}
+ 
+/* flow diagram */
+.flow{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:0;
+  justify-content:center;
+}
+ 
+.flow-node{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:12px 20px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text);
+  text-align:center;
+  min-width:110px;
+  position:relative;
+}
+ 
+.flow-node.orange{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+.flow-node.blue{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.flow-node.green{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.flow-node.red{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.flow-node.yellow{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-dim)}
+ 
+.flow-node small{
+  display:block;
+  font-size:10px;
+  opacity:0.7;
+  margin-top:2px;
+  font-weight:400;
+  font-family:'JetBrains Mono',monospace;
+}
+ 
+.flow-arrow{
+  color:var(--border2);
+  font-size:20px;
+  margin:0 8px;
+  flex-shrink:0;
+}
+ 
+.flow-arrow.down{
+  transform:rotate(90deg);
+  margin:8px auto;
+  display:block;
+  width:fit-content;
+}
+ 
+.flow-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+}
+ 
+/* ── TABLE ── */
+.table-wrap{
+  overflow-x:auto;
+  margin-bottom:24px;
+}
+ 
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+ 
+th{
+  text-align:left;
+  padding:10px 16px;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  color:var(--muted);
+  background:var(--surface2);
+  border:1px solid var(--border);
+}
+ 
+td{
+  padding:12px 16px;
+  border:1px solid var(--border);
+  color:var(--text);
+  vertical-align:top;
+}
+ 
+td code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  background:var(--surface2);
+  padding:2px 6px;
+  border-radius:4px;
+  color:var(--orange);
+}
+ 
+tr:hover td{background:var(--surface2)}
+ 
+/* ── ALERT BOX ── */
+.alert{
+  display:flex;
+  gap:14px;
+  padding:16px 20px;
+  border-radius:10px;
+  margin-bottom:20px;
+  font-size:14px;
+  line-height:1.6;
+}
+ 
+.alert.warn{background:var(--yellow-dim);border:1px solid var(--yellow);color:var(--yellow)}
+.alert.info{background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue)}
+.alert.danger{background:var(--red-dim);border:1px solid var(--red);color:var(--red)}
+.alert.ok{background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert strong{display:block;margin-bottom:3px}
+.alert p{color:inherit;opacity:0.85;font-size:13px;margin:0}
+ 
+/* ── STEP LIST ── */
+.steps{counter-reset:steps;margin-bottom:24px}
+ 
+.step{
+  display:flex;
+  gap:20px;
+  padding:20px 0;
+  border-bottom:1px solid var(--border);
+}
+ 
+.step:last-child{border-bottom:none}
+ 
+.step-num{
+  counter-increment:steps;
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--orange-dim);
+  border:1px solid var(--orange-mid);
+  color:var(--orange);
+  font-family:'Syne',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+ 
+.step-content h4{
+  font-size:15px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:6px;
+}
+ 
+.step-content p{font-size:14px;color:var(--muted)}
+ 
+/* ── BADGE ── */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:11px;
+  font-weight:600;
+  padding:3px 9px;
+  border-radius:20px;
+  font-family:'JetBrains Mono',monospace;
+}
+ 
+.badge.orange{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange-mid)}
+.badge.green{background:var(--green-dim);color:var(--green)}
+.badge.red{background:var(--red-dim);color:var(--red)}
+.badge.blue{background:var(--blue-dim);color:var(--blue)}
+.badge.muted{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+ 
+/* ── ROLE MATRIX ── */
+.matrix td.yes{color:var(--green);font-weight:600;text-align:center}
+.matrix td.no{color:var(--red);opacity:0.4;text-align:center}
+ 
+/* ── ARCHITECTURE SVG ── */
+.arch-svg{width:100%;max-width:700px;display:block;margin:0 auto}
+ 
+/* ── HIGHLIGHT ── */
+.highlight{
+  background:var(--orange-dim);
+  border-left:3px solid var(--orange);
+  padding:16px 20px;
+  border-radius:0 8px 8px 0;
+  margin-bottom:20px;
+  font-size:14px;
+  color:var(--text);
+  line-height:1.7;
+}
+ 
+/* ── INLINE CODE ── */
+code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  padding:2px 6px;
+  border-radius:4px;
+  color:var(--orange);
+}
+</style>
+</head>
+<body>
+ 
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="fire">
+      <svg viewBox="0 0 24 24"><path d="M12 23a7.5 7.5 0 0 1-5.138-12.963C8.204 8.774 11.5 6.5 11 1.5c6 4 9 8 3 14 1 0 2.5 0 3-1.5.5 1 .5 2-.5 3.5A7.5 7.5 0 0 1 12 23z"/></svg>
+      Firebase Auth
+    </div>
+    <p>Guía completa</p>
+  </div>
+ 
+  <div class="nav-section">Introducción</div>
+  <a href="#que-es" class="nav-link active"><span class="nav-dot"></span>¿Qué es Firebase?</a>
+  <a href="#arquitectura" class="nav-link"><span class="nav-dot"></span>Arquitectura</a>
+ 
+  <div class="nav-section">Authentication</div>
+  <a href="#como-funciona" class="nav-link"><span class="nav-dot"></span>Cómo funciona</a>
+  <a href="#flujo-login" class="nav-link"><span class="nav-dot"></span>Flujo de login</a>
+  <a href="#registro" class="nav-link"><span class="nav-dot"></span>Registro de usuario</a>
+  <a href="#sesion" class="nav-link"><span class="nav-dot"></span>Manejo de sesión</a>
+ 
+  <div class="nav-section">Firestore & Roles</div>
+  <a href="#firestore" class="nav-link"><span class="nav-dot"></span>Firestore</a>
+  <a href="#roles" class="nav-link"><span class="nav-dot"></span>Roles y permisos</a>
+  <a href="#custom-claims" class="nav-link"><span class="nav-dot"></span>Custom Claims</a>
+ 
+  <div class="nav-section">Seguridad</div>
+  <a href="#reglas" class="nav-link"><span class="nav-dot"></span>Security Rules</a>
+  <a href="#rutas" class="nav-link"><span class="nav-dot"></span>Proteger rutas</a>
+ 
+  <div class="nav-section">Setup</div>
+  <a href="#crear-proyecto" class="nav-link"><span class="nav-dot"></span>Crear proyecto</a>
+  <a href="#codigo" class="nav-link"><span class="nav-dot"></span>Código de ejemplo</a>
+</aside>
+ 
+<!-- MAIN -->
+<div class="main">
+ 
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23a7.5 7.5 0 0 1-5.138-12.963C8.204 8.774 11.5 6.5 11 1.5c6 4 9 8 3 14 1 0 2.5 0 3-1.5.5 1 .5 2-.5 3.5A7.5 7.5 0 0 1 12 23z"/></svg>
+      Guía técnica
+    </div>
+    <h1>Firebase<br><span>Authentication</span></h1>
+    <p>Todo lo que necesitas saber sobre autenticación, roles, permisos, Firestore y Security Rules para implementar login seguro en tus proyectos.</p>
+    <div class="hero-chips">
+      <span class="chip">email/password</span>
+      <span class="chip">Firestore</span>
+      <span class="chip">Security Rules</span>
+      <span class="chip">Custom Claims</span>
+      <span class="chip">onAuthStateChanged</span>
+      <span class="chip">RBAC</span>
+    </div>
+  </div>
+ 
+  <!-- CONTENT -->
+  <div class="content">
+ 
+    <!-- ── 1. QUÉ ES ── -->
+    <div class="section" id="que-es">
+      <div class="section-label">01 — Introducción</div>
+      <h2>¿Qué es Firebase?</h2>
+      <p>Firebase es una plataforma de desarrollo de Google que provee infraestructura backend lista para usar. En lugar de construir tu propio servidor de autenticación, base de datos y almacenamiento, Firebase te da APIs que consumes directamente desde el frontend.</p>
+ 
+      <div class="card-grid-3">
+        <div class="card">
+          <div class="card-icon orange">🔐</div>
+          <h3>Authentication</h3>
+          <p>Gestiona usuarios: registro, login, logout, recuperación de contraseña. Soporta email/password, Google, GitHub, etc.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon blue">🗄️</div>
+          <h3>Firestore</h3>
+          <p>Base de datos NoSQL en tiempo real. Aquí guardamos los datos del usuario: nombre, rol, preferencias, etc.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon green">🛡️</div>
+          <h3>Security Rules</h3>
+          <p>Reglas declarativas que controlan quién puede leer o escribir qué en Firestore, directamente desde la consola.</p>
+        </div>
+      </div>
+ 
+      <div class="alert info">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Dato clave</strong>
+          <p>Firebase Authentication y Firestore son servicios separados que trabajan juntos. Auth identifica al usuario (¿quién eres?), Firestore guarda sus datos y permisos (¿qué puedes hacer?).</p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 2. ARQUITECTURA ── -->
+    <div class="section" id="arquitectura">
+      <div class="section-label">02 — Arquitectura</div>
+      <h2>Cómo se conectan los servicios</h2>
+      <p>El flujo completo desde que un usuario inicia sesión hasta que accede a datos protegidos pasa por tres capas.</p>
+ 
+      <div class="diagram">
+        <div class="diagram-title">Arquitectura general</div>
+ 
+        <!-- row 1 -->
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+ 
+          <!-- Usuario -->
+          <div class="flow-col" style="flex:1;min-width:140px">
+            <div class="flow-node orange">
+              👤 Usuario
+              <small>Browser</small>
+            </div>
+            <span class="flow-arrow down">→</span>
+            <div class="flow-node" style="font-size:12px;padding:10px 14px">
+              SDK Firebase JS<br>
+              <span style="color:var(--muted);font-size:11px">firebase/auth<br>firebase/firestore</span>
+            </div>
+          </div>
+ 
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:20px">
+            <span style="font-size:22px;color:var(--border2)">→</span>
+            <span style="font-size:22px;color:var(--border2)">→</span>
+          </div>
+ 
+          <!-- Firebase -->
+          <div class="flow-col" style="flex:2;min-width:280px">
+            <div style="border:1px dashed var(--border2);border-radius:12px;padding:16px;background:var(--surface2)">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase">☁ Firebase (Google Cloud)</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <div class="flow-node orange" style="flex:1;min-width:110px">
+                  🔐 Auth
+                  <small>Tokens JWT</small>
+                </div>
+                <div class="flow-node blue" style="flex:1;min-width:110px">
+                  🗄️ Firestore
+                  <small>Datos usuario</small>
+                </div>
+              </div>
+            </div>
+          </div>
+ 
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:20px">
+            <span style="font-size:22px;color:var(--border2)">→</span>
+          </div>
+ 
+          <!-- Tu app -->
+          <div class="flow-col" style="flex:1;min-width:140px">
+            <div class="flow-node green">
+              🖥️ Tu App
+              <small>Rutas protegidas</small>
+            </div>
+          </div>
+ 
+        </div>
+ 
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:24px;flex-wrap:wrap">
+          <div style="font-size:12px;color:var(--muted)"><span style="color:var(--orange)">●</span> Auth: identifica al usuario y emite un <strong style="color:var(--text)">JWT token</strong></div>
+          <div style="font-size:12px;color:var(--muted)"><span style="color:var(--blue)">●</span> Firestore: guarda datos del usuario (nombre, rol, metadata)</div>
+          <div style="font-size:12px;color:var(--muted)"><span style="color:var(--green)">●</span> Security Rules: validan el token antes de permitir lectura/escritura</div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 3. CÓMO FUNCIONA AUTH ── -->
+    <div class="section" id="como-funciona">
+      <div class="section-label">03 — Authentication</div>
+      <h2>Cómo funciona la autenticación</h2>
+      <p>Firebase Authentication usa tokens <strong>JWT (JSON Web Token)</strong> — un estándar seguro de la industria. El token viaja en cada petición y Firebase lo verifica automáticamente.</p>
+ 
+      <div class="card-grid">
+        <div class="card">
+          <h3>🪪 ¿Qué es un JWT?</h3>
+          <p>Es una cadena codificada en base64 dividida en 3 partes: <strong>header</strong> (algoritmo), <strong>payload</strong> (datos del usuario: uid, email, custom claims) y <strong>signature</strong> (firma criptográfica que Firebase verifica).</p>
+          <br>
+          <code style="font-size:11px;word-break:break-all;display:block;padding:8px;line-height:1.6">eyJhbGciOiJSUzI1NiJ9.<br>eyJ1aWQiOiJhYmMxMjMiLCJyb2xlIjoiYWRtaW4ifQ.<br>FIRMA...</code>
+        </div>
+        <div class="card">
+          <h3>⏱️ Vida del token</h3>
+          <p>El token de Firebase dura <strong>1 hora</strong>. El SDK lo renueva automáticamente en segundo plano cuando está por expirar. No necesitas hacer nada — <code>onAuthStateChanged</code> siempre tiene el token fresco.</p>
+          <br>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge orange">Emitido al login</span>
+            <span class="badge muted">Dura 1 hora</span>
+            <span class="badge green">Auto-renovado</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="highlight">
+        Firebase guarda la sesión en <strong>localStorage</strong> del navegador. Cuando el usuario cierra y vuelve a abrir el navegador, el SDK detecta la sesión guardada y la restaura automáticamente — sin que el usuario tenga que hacer login de nuevo.
+      </div>
+ 
+      <div class="diagram">
+        <div class="diagram-title">Ciclo de vida del token JWT</div>
+        <div class="flow" style="gap:4px;justify-content:flex-start;flex-wrap:wrap">
+          <div class="flow-node orange">Login<small>email+pass</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node blue">Firebase verifica<small>credenciales</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node green">Emite JWT<small>uid, email, claims</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node yellow">SDK lo guarda<small>localStorage</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">App recibe user<small>onAuthStateChanged</small></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 4. FLUJO DE LOGIN ── -->
+    <div class="section" id="flujo-login">
+      <div class="section-label">04 — Login</div>
+      <h2>Flujo completo de inicio de sesión</h2>
+      <p>Desde que el usuario presiona "Iniciar sesión" hasta que ve su dashboard, ocurren exactamente estos pasos:</p>
+ 
+      <div class="diagram">
+        <div class="diagram-title">Flujo de login — email/password</div>
+ 
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <!-- columna izquierda: cliente -->
+          <div style="border-right:1px solid var(--border);padding-right:24px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">🖥️ Cliente (browser)</div>
+            <div class="flow-col" style="gap:8px;align-items:flex-start">
+              <div class="flow-node" style="width:100%">Usuario escribe email + contraseña</div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node" style="width:100%"><code>signInWithEmailAndPassword(auth, email, pass)</code></div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node green" style="width:100%">SDK recibe el <strong>user</strong> object</div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node" style="width:100%">Leer rol en Firestore<br><small style="color:var(--muted)">getDoc(doc(db,'users',uid))</small></div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node orange" style="width:100%">Redirigir según rol<br><small>admin.html / dashboard.html</small></div>
+            </div>
+          </div>
+ 
+          <!-- columna derecha: firebase -->
+          <div style="padding-left:24px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:16px">☁ Firebase</div>
+            <div class="flow-col" style="gap:8px;align-items:flex-start">
+              <div style="height:52px"></div>
+              <div class="flow-node" style="width:100%;font-size:12px">Verifica credenciales<br><small style="color:var(--muted)">Auth server</small></div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node" style="width:100%;font-size:12px">Genera JWT firmado<br><small style="color:var(--muted)">uid + email + claims</small></div>
+              <span class="flow-arrow down" style="margin:0 0 0 55px">→</span>
+              <div class="flow-node blue" style="width:100%;font-size:12px">Devuelve UserCredential<br><small>{ user, token }</small></div>
+            </div>
+          </div>
+        </div>
+ 
+        <div class="alert warn" style="margin-top:20px;margin-bottom:0">
+          <span class="alert-icon">⚠️</span>
+          <div>
+            <strong>Errores comunes de login</strong>
+            <p><code>auth/user-not-found</code> — el correo no existe · <code>auth/wrong-password</code> — contraseña incorrecta · <code>auth/too-many-requests</code> — cuenta bloqueada temporalmente por intentos fallidos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 5. REGISTRO ── -->
+    <div class="section" id="registro">
+      <div class="section-label">05 — Registro</div>
+      <h2>Registro de usuario</h2>
+      <p>Al registrarse, se crean dos cosas: una cuenta en Firebase Auth y un documento en Firestore. Son registros separados que se vinculan por el <code>uid</code>.</p>
+ 
+      <div class="card-grid">
+        <div class="card">
+          <h3>🔐 En Firebase Auth</h3>
+          <p>Guarda solo las credenciales de acceso: email, contraseña (hasheada, nunca en texto plano), y el <code>uid</code> único del usuario. <strong>No guarda nombre, rol ni ningún dato extra.</strong></p>
+          <br>
+          <div style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.8">
+            uid: "abc123xyz"<br>
+            email: "juan@ucol.mx"<br>
+            password: <span style="color:var(--green)">█████ (hash)</span><br>
+            emailVerified: false
+          </div>
+        </div>
+        <div class="card">
+          <h3>🗄️ En Firestore</h3>
+          <p>Guarda los datos del perfil: nombre, rol, fecha de registro. El documento se crea justo después del registro, usando el <code>uid</code> como ID del documento.</p>
+          <br>
+          <div style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.8">
+            uid: "abc123xyz"<br>
+            name: "Juan Pérez"<br>
+            email: "juan@ucol.mx"<br>
+            role: <span style="color:var(--orange)">"user"</span><br>
+            createdAt: Timestamp
+          </div>
+        </div>
+      </div>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">registro.js</span>
+          <span class="code-lang">JavaScript</span>
+        </div>
+        <pre><span class="c">// 1. Crear cuenta en Firebase Auth</span>
+<span class="k">const</span> { <span class="v">user</span> } = <span class="k">await</span> <span class="f">createUserWithEmailAndPassword</span>(auth, email, password);
+ 
+<span class="c">// 2. Crear documento en Firestore con el uid como ID</span>
+<span class="k">await</span> <span class="f">setDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, user.uid), {
+  uid:       user.uid,
+  name:      nombre,
+  email:     email,
+  role:      <span class="s">'user'</span>,        <span class="c">// rol por defecto — admin lo cambia después</span>
+  createdAt: <span class="f">serverTimestamp</span>()
+});
+ 
+<span class="c">// 3. Redirigir al dashboard</span>
+window.location.href = <span class="s">'dashboard.html'</span>;</pre>
+      </div>
+ 
+      <div class="alert info">
+        <span class="alert-icon">🔑</span>
+        <div>
+          <strong>¿Por qué usar el uid como ID del documento?</strong>
+          <p>Porque así <code>getDoc(doc(db, 'users', user.uid))</code> siempre encuentra el documento del usuario en sesión sin necesitar una query. Es la forma más eficiente y la que usan las Security Rules para verificar permisos.</p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 6. SESIÓN ── -->
+    <div class="section" id="sesion">
+      <div class="section-label">06 — Sesión</div>
+      <h2>Manejo de sesión activa</h2>
+      <p><code>onAuthStateChanged</code> es el observer central de Firebase. Se ejecuta cada vez que el estado de autenticación cambia: al hacer login, al hacer logout, y al cargar la página (para restaurar sesiones guardadas).</p>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">auth-guard.js</span>
+          <span class="code-lang">JavaScript</span>
+        </div>
+        <pre><span class="k">import</span> { onAuthStateChanged } <span class="k">from</span> <span class="s">"firebase/auth"</span>;
+<span class="k">import</span> { doc, getDoc } <span class="k">from</span> <span class="s">"firebase/firestore"</span>;
+ 
+<span class="f">onAuthStateChanged</span>(auth, <span class="k">async</span> (<span class="v">user</span>) => {
+ 
+  <span class="k">if</span> (!user) {
+    <span class="c">// No hay sesión → redirigir al login</span>
+    window.location.href = <span class="s">'index.html'</span>;
+    <span class="k">return</span>;
+  }
+ 
+  <span class="c">// Hay sesión → leer rol de Firestore</span>
+  <span class="k">const</span> <span class="v">userDoc</span> = <span class="k">await</span> <span class="f">getDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, user.uid));
+  <span class="k">const</span> <span class="v">role</span> = userDoc.<span class="f">data</span>()?.role ?? <span class="s">'user'</span>;
+ 
+  <span class="c">// Redirigir según rol</span>
+  <span class="k">if</span> (role === <span class="s">'admin'</span>) {
+    window.location.href = <span class="s">'admin.html'</span>;
+  } <span class="k">else</span> {
+    window.location.href = <span class="s">'dashboard.html'</span>;
+  }
+ 
+});</pre>
+      </div>
+ 
+      <div class="diagram">
+        <div class="diagram-title">onAuthStateChanged — estados posibles</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div style="text-align:center">
+            <div class="flow-node" style="margin-bottom:10px">Página carga</div>
+            <span class="flow-arrow" style="display:block;margin:6px auto;width:fit-content">↓</span>
+            <div class="flow-node green">Sesión guardada<br><small>→ entra directo</small></div>
+          </div>
+          <div style="text-align:center">
+            <div class="flow-node" style="margin-bottom:10px">Login exitoso</div>
+            <span class="flow-arrow" style="display:block;margin:6px auto;width:fit-content">↓</span>
+            <div class="flow-node orange">user = objeto<br><small>→ onAuthStateChanged</small></div>
+          </div>
+          <div style="text-align:center">
+            <div class="flow-node" style="margin-bottom:10px">signOut()</div>
+            <span class="flow-arrow" style="display:block;margin:6px auto;width:fit-content">↓</span>
+            <div class="flow-node red">user = null<br><small>→ redirige a login</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 7. FIRESTORE ── -->
+    <div class="section" id="firestore">
+      <div class="section-label">07 — Firestore</div>
+      <h2>Estructura de datos en Firestore</h2>
+      <p>Firestore organiza datos en <strong>colecciones</strong> → <strong>documentos</strong>. Cada documento es un objeto JSON con campos. Para el sistema de usuarios, la estructura es:</p>
+ 
+      <div class="card">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2">
+          <span style="color:var(--orange)">📁 users</span> <span style="color:var(--muted)">(colección)</span><br>
+          &nbsp;&nbsp;<span style="color:var(--blue)">📄 abc123xyz</span> <span style="color:var(--muted)">(documento — ID = uid del usuario)</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">uid:</span> <span style="color:var(--green)">"abc123xyz"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">name:</span> <span style="color:var(--green)">"Juan Pérez"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">email:</span> <span style="color:var(--green)">"juan@ucol.mx"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">role:</span> <span style="color:var(--orange)">"user"</span> <span style="color:var(--muted)">// o "admin"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">createdAt:</span> <span style="color:var(--yellow)">Timestamp(2025-01-15)</span><br>
+          <br>
+          &nbsp;&nbsp;<span style="color:var(--blue)">📄 xyz987abc</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">...</span>
+        </div>
+      </div>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Operaciones CRUD básicas</span>
+          <span class="code-lang">JavaScript</span>
+        </div>
+        <pre><span class="c">// LEER un documento</span>
+<span class="k">const</span> <span class="v">snap</span> = <span class="k">await</span> <span class="f">getDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, uid));
+<span class="k">const</span> <span class="v">data</span> = snap.<span class="f">exists</span>() ? snap.<span class="f">data</span>() : <span class="k">null</span>;
+ 
+<span class="c">// ESCRIBIR / CREAR un documento</span>
+<span class="k">await</span> <span class="f">setDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, uid), { name, role: <span class="s">'user'</span> });
+ 
+<span class="c">// ACTUALIZAR un campo específico</span>
+<span class="k">await</span> <span class="f">updateDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, uid), { role: <span class="s">'admin'</span> });
+ 
+<span class="c">// LEER todos los documentos de una colección</span>
+<span class="k">const</span> <span class="v">snapshot</span> = <span class="k">await</span> <span class="f">getDocs</span>(<span class="f">collection</span>(db, <span class="s">'users'</span>));
+snapshot.<span class="f">forEach</span>((<span class="v">doc</span>) => console.<span class="f">log</span>(doc.<span class="f">data</span>()));</pre>
+      </div>
+    </div>
+ 
+    <!-- ── 8. ROLES ── -->
+    <div class="section" id="roles">
+      <div class="section-label">08 — Roles y permisos</div>
+      <h2>Sistema de roles (RBAC)</h2>
+      <p>Firebase no tiene un sistema de roles incorporado — tú lo construyes guardando el rol en Firestore y verificándolo en cada pantalla. Este patrón se llama <strong>RBAC (Role-Based Access Control)</strong>.</p>
+ 
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon green">👤</div>
+          <h3>Rol: user</h3>
+          <p>Usuario estándar. Puede ver su propio perfil. No puede acceder a rutas de administración ni leer datos de otros usuarios.</p>
+          <br>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge green">✓ Ver su perfil</span>
+            <span class="badge red">✗ Panel admin</span>
+            <span class="badge red">✗ Ver otros users</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon orange">👑</div>
+          <h3>Rol: admin</h3>
+          <p>Administrador. Puede leer todos los usuarios, cambiar sus roles y acceder a cualquier ruta protegida del sistema.</p>
+          <br>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge green">✓ Ver su perfil</span>
+            <span class="badge green">✓ Panel admin</span>
+            <span class="badge green">✓ Cambiar roles</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="table-wrap">
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Acción</th>
+              <th>Sin sesión</th>
+              <th>user</th>
+              <th>admin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ver página de login</td>
+              <td class="yes">✓</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+            </tr>
+            <tr>
+              <td>Ver dashboard propio</td>
+              <td class="no">✗</td>
+              <td class="yes">✓</td>
+              <td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>Ver panel admin</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>Leer datos de otro usuario</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="yes">✓</td>
+            </tr>
+            <tr>
+              <td>Cambiar rol de un usuario</td>
+              <td class="no">✗</td>
+              <td class="no">✗</td>
+              <td class="yes">✓</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+ 
+      <div class="alert warn">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Los roles del frontend son solo UI</strong>
+          <p>Deshabilitar botones o redirigir al usuario en JS no es suficiente seguridad. Alguien puede abrir la consola y saltarse esas restricciones. La seguridad real está en las <strong>Security Rules de Firestore</strong> — si el servidor rechaza la petición, no importa lo que el usuario haga en el navegador.</p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 9. CUSTOM CLAIMS ── -->
+    <div class="section" id="custom-claims">
+      <div class="section-label">09 — Custom Claims</div>
+      <h2>Custom Claims vs Roles en Firestore</h2>
+      <p>Hay dos formas de implementar roles en Firebase. Cada una tiene sus casos de uso:</p>
+ 
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon blue">🏷️</div>
+          <h3>Custom Claims</h3>
+          <p>El rol viaja <strong>dentro del JWT token</strong>. No necesitas leer Firestore — el claim está disponible instantáneamente. Requiere <strong>Admin SDK</strong> (Node.js en servidor) para asignarlos.</p>
+          <br>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge green">✓ Muy rápido</span>
+            <span class="badge green">✓ Seguro</span>
+            <span class="badge red">✗ Necesita backend</span>
+            <span class="badge muted">Máx 1000 bytes</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon yellow">🗄️</div>
+          <h3>Rol en Firestore</h3>
+          <p>El rol se guarda como campo en el documento del usuario. Se lee con <code>getDoc</code> después del login. Más simple: no necesita backend.</p>
+          <br>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="badge green">✓ Sin backend</span>
+            <span class="badge green">✓ Fácil de cambiar</span>
+            <span class="badge red">✗ Un extra read</span>
+            <span class="badge muted">Recomendado</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Custom Claims — requiere Admin SDK (Node.js)</span>
+          <span class="code-lang">Node.js</span>
+        </div>
+        <pre><span class="c">// Solo se puede ejecutar desde un servidor con Admin SDK</span>
+<span class="k">const</span> admin = <span class="f">require</span>(<span class="s">'firebase-admin'</span>);
+ 
+<span class="c">// Asignar claim "admin" a un usuario</span>
+<span class="k">await</span> admin.auth().<span class="f">setCustomUserClaims</span>(uid, { role: <span class="s">'admin'</span> });
+ 
+<span class="c">// En el frontend, leer el claim del token</span>
+<span class="k">const</span> <span class="v">tokenResult</span> = <span class="k">await</span> user.<span class="f">getIdTokenResult</span>();
+console.<span class="f">log</span>(tokenResult.claims.role); <span class="c">// "admin"</span></pre>
+      </div>
+ 
+      <div class="highlight">
+        Para proyectos sin backend (solo frontend + Firebase), <strong>usa roles en Firestore</strong>. Para proyectos con un servidor Node.js/PHP que ya usa Admin SDK, los Custom Claims son más eficientes porque no requieren una lectura extra a Firestore en cada carga de página.
+      </div>
+    </div>
+ 
+    <!-- ── 10. SECURITY RULES ── -->
+    <div class="section" id="reglas">
+      <div class="section-label">10 — Security Rules</div>
+      <h2>Reglas de seguridad de Firestore</h2>
+      <p>Las Security Rules son la última línea de defensa. Se configuran en Firebase Console → Firestore → Rules. Incluso si alguien manipula el frontend, el servidor rechaza cualquier petición que no cumpla las reglas.</p>
+ 
+      <div class="alert danger">
+        <span class="alert-icon">🚨</span>
+        <div>
+          <strong>Nunca uses estas reglas en producción</strong>
+          <p>Las reglas por defecto de Firebase permiten lectura y escritura a cualquiera. Siempre configura reglas antes de lanzar tu app.</p>
+        </div>
+      </div>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">firestore.rules — reglas comentadas</span>
+          <span class="code-lang">Rules</span>
+        </div>
+        <pre><span class="k">rules_version</span> = <span class="s">'2'</span>;
+<span class="k">service</span> cloud.firestore {
+  <span class="k">match</span> /databases/{database}/documents {
+ 
+    <span class="k">match</span> /users/{userId} {
+ 
+      <span class="c">// Cualquier usuario autenticado puede leer su PROPIO documento</span>
+      <span class="f">allow</span> read: <span class="k">if</span> request.auth != <span class="k">null</span>
+                   && request.auth.uid == userId;
+ 
+      <span class="c">// Al registrarse: puede crear su propio doc, pero NO asignarse "admin"</span>
+      <span class="f">allow</span> create: <span class="k">if</span> request.auth != <span class="k">null</span>
+                     && request.auth.uid == userId
+                     && request.resource.data.role == <span class="s">'user'</span>;
+ 
+      <span class="c">// Puede actualizar su doc, pero NO cambiarse el rol</span>
+      <span class="f">allow</span> update: <span class="k">if</span> request.auth != <span class="k">null</span>
+                     && request.auth.uid == userId
+                     && request.resource.data.role == resource.data.role;
+ 
+      <span class="c">// Admin puede leer CUALQUIER usuario y cambiar roles</span>
+      <span class="f">allow</span> read, write: <span class="k">if</span> request.auth != <span class="k">null</span>
+                          && <span class="f">get</span>(/databases/$(database)/documents/users/$(request.auth.uid))
+                            .data.role == <span class="s">'admin'</span>;
+    }
+ 
+  }
+}</pre>
+      </div>
+ 
+      <div class="card-grid">
+        <div class="card">
+          <h3>🔍 request.auth</h3>
+          <p>Contiene la información del usuario que hace la petición. <code>request.auth.uid</code> es el UID verificado — no se puede falsificar.</p>
+        </div>
+        <div class="card">
+          <h3>📄 resource.data</h3>
+          <p>Los datos actuales del documento en Firestore. <code>request.resource.data</code> son los nuevos datos que se intentan escribir.</p>
+        </div>
+        <div class="card">
+          <h3>🔗 get()</h3>
+          <p>Permite leer otro documento dentro de una rule. Aquí se usa para verificar que el usuario que hace la petición tenga <code>role == 'admin'</code>.</p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 11. PROTEGER RUTAS ── -->
+    <div class="section" id="rutas">
+      <div class="section-label">11 — Rutas protegidas</div>
+      <h2>Proteger páginas según rol</h2>
+      <p>Cada página HTML verifica el estado de autenticación al cargarse usando <code>onAuthStateChanged</code>. Esto previene que usuarios no autorizados vean contenido protegido.</p>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">Patrón guard para página de admin</span>
+          <span class="code-lang">JavaScript</span>
+        </div>
+        <pre><span class="f">onAuthStateChanged</span>(auth, <span class="k">async</span> (<span class="v">user</span>) => {
+ 
+  <span class="c">// Sin sesión → login</span>
+  <span class="k">if</span> (!user) { window.location.href = <span class="s">'index.html'</span>; <span class="k">return</span>; }
+ 
+  <span class="c">// Leer documento de Firestore</span>
+  <span class="k">const</span> <span class="v">snap</span> = <span class="k">await</span> <span class="f">getDoc</span>(<span class="f">doc</span>(db, <span class="s">'users'</span>, user.uid));
+ 
+  <span class="c">// No existe el doc o no es admin → redirigir</span>
+  <span class="k">if</span> (!snap.<span class="f">exists</span>() || snap.<span class="f">data</span>().role !== <span class="s">'admin'</span>) {
+    window.location.href = <span class="s">'dashboard.html'</span>;
+    <span class="k">return</span>;
+  }
+ 
+  <span class="c">// ✓ Autenticado + es admin → mostrar contenido</span>
+  document.getElementById(<span class="s">'loading'</span>).style.display = <span class="s">'none'</span>;
+  document.body.classList.add(<span class="s">'ready'</span>);
+ 
+});</pre>
+      </div>
+ 
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Archivo</th>
+              <th>Condición para entrar</th>
+              <th>Redirige a si falla</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>index.html</code></td>
+              <td>No tener sesión activa</td>
+              <td><code>dashboard.html</code> o <code>admin.html</code></td>
+            </tr>
+            <tr>
+              <td><code>dashboard.html</code></td>
+              <td><code>user != null</code> (cualquier rol)</td>
+              <td><code>index.html</code></td>
+            </tr>
+            <tr>
+              <td><code>admin.html</code></td>
+              <td><code>user != null</code> <strong>y</strong> <code>role == 'admin'</code></td>
+              <td><code>dashboard.html</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+ 
+      <div class="alert ok">
+        <span class="alert-icon">✅</span>
+        <div>
+          <strong>Doble protección</strong>
+          <p>El guard en JS protege la experiencia de usuario. Las Security Rules en Firestore protegen los datos en el servidor. Aunque alguien desactive el JS del navegador, no puede leer datos de otros usuarios porque Firestore rechaza la petición.</p>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 12. CREAR PROYECTO ── -->
+    <div class="section" id="crear-proyecto">
+      <div class="section-label">12 — Setup</div>
+      <h2>Cómo crear el proyecto en Firebase</h2>
+ 
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Ir a console.firebase.google.com</h4>
+            <p>Inicia sesión con tu cuenta de Google y haz clic en <strong>"Crear un proyecto"</strong>. Dale un nombre (ej: <code>cms-ucol</code>) y decide si quieres Google Analytics.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Agregar una app web</h4>
+            <p>En la pantalla principal del proyecto, haz clic en el ícono <strong>&lt;/&gt;</strong> (Web). Registra la app con un nombre. Firebase te dará el objeto <code>firebaseConfig</code> con tus claves.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Activar Authentication</h4>
+            <p>En el panel izquierdo → <strong>Build → Authentication → Get started</strong>. En la pestaña <strong>Sign-in method</strong>, habilita <strong>Email/Password</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Crear la base de datos Firestore</h4>
+            <p>Panel izquierdo → <strong>Build → Firestore Database → Create database</strong>. Elige <strong>"Start in test mode"</strong> (después cambias las rules a producción). Selecciona la región más cercana.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h4>Configurar Security Rules</h4>
+            <p>En Firestore → pestaña <strong>Rules</strong>. Pega las reglas de la sección anterior y haz clic en <strong>Publish</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <h4>Crear el primer admin manualmente</h4>
+            <p>Regístrate normalmente desde tu app. Luego en Firestore Console → colección <code>users</code> → tu documento → edita el campo <code>role</code> de <code>"user"</code> a <code>"admin"</code>. Ya puedes entrar al panel de admin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ── 13. CÓDIGO COMPLETO ── -->
+    <div class="section" id="codigo">
+      <div class="section-label">13 — Código de ejemplo</div>
+      <h2>Estructura de archivos del proyecto</h2>
+ 
+      <div class="card" style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2">
+        <span style="color:var(--orange)">📁 proyecto/</span><br>
+        &nbsp;&nbsp;<span style="color:var(--blue)">📄 firebase-config.js</span> <span style="color:var(--muted)">— inicialización compartida</span><br>
+        &nbsp;&nbsp;<span style="color:var(--blue)">📄 index.html</span> <span style="color:var(--muted)">— login + registro</span><br>
+        &nbsp;&nbsp;<span style="color:var(--blue)">📄 dashboard.html</span> <span style="color:var(--muted)">— protegida, cualquier usuario</span><br>
+        &nbsp;&nbsp;<span style="color:var(--blue)">📄 admin.html</span> <span style="color:var(--muted)">— protegida, solo admin</span><br>
+        &nbsp;&nbsp;<span style="color:var(--blue)">📄 firestore.rules</span> <span style="color:var(--muted)">— reglas de seguridad</span>
+      </div>
+ 
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">firebase-config.js — compartido en todos los archivos</span>
+          <span class="code-lang">JavaScript</span>
+        </div>
+        <pre><span class="k">import</span> { initializeApp } <span class="k">from</span> <span class="s">"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"</span>;
+<span class="k">import</span> { getAuth } <span class="k">from</span> <span class="s">"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"</span>;
+<span class="k">import</span> { getFirestore } <span class="k">from</span> <span class="s">"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"</span>;
+ 
+<span class="k">const</span> <span class="v">firebaseConfig</span> = {
+  apiKey:            <span class="s">"tu-api-key"</span>,
+  authDomain:        <span class="s">"tu-proyecto.firebaseapp.com"</span>,
+  projectId:         <span class="s">"tu-proyecto"</span>,
+  storageBucket:     <span class="s">"tu-proyecto.appspot.com"</span>,
+  messagingSenderId: <span class="s">"123456789"</span>,
+  appId:             <span class="s">"1:123:web:abc"</span>
+};
+ 
+<span class="k">const</span> <span class="v">app</span> = <span class="f">initializeApp</span>(firebaseConfig);
+<span class="k">export</span> <span class="k">const</span> <span class="v">auth</span> = <span class="f">getAuth</span>(app);
+<span class="k">export</span> <span class="k">const</span> <span class="v">db</span>   = <span class="f">getFirestore</span>(app);</pre>
+      </div>
+ 
+      <div class="alert info">
+        <span class="alert-icon">📌</span>
+        <div>
+          <strong>Importante: type="module"</strong>
+          <p>Los scripts que usen <code>import/export</code> de Firebase necesitan <code>&lt;script type="module"&gt;</code>. Sin eso, el navegador no puede procesar los imports y obtendrás un error de sintaxis.</p>
+        </div>
+      </div>
+ 
+      <!-- Resumen final -->
+      <div style="margin-top:48px;padding:36px;background:var(--surface);border:1px solid var(--border);border-radius:16px">
+        <div class="section-label" style="margin-bottom:12px">Resumen</div>
+        <h3 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:20px;letter-spacing:-0.3px">Lo que tienes implementado</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Firebase Auth</strong> — login y registro con email/password</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Firestore</strong> — perfil de usuario con nombre, email y rol</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Roles RBAC</strong> — <code>user</code> y <code>admin</code> con redirección automática</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Rutas protegidas</strong> — guard con <code>onAuthStateChanged</code></span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Security Rules</strong> — usuarios no pueden cambiar su propio rol</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:14px">
+            <span style="color:var(--green);flex-shrink:0;margin-top:2px">✓</span>
+            <span><strong>Gestión de roles</strong> — admin puede cambiar roles desde el panel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+  </div><!-- /content -->
+</div><!-- /main -->
+ 
+<script>
+// Highlight nav on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+ 
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+ 
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
