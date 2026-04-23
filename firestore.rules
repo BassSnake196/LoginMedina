@@ -1,0 +1,32 @@
+// firestore.rules
+// Pega estas reglas en Firebase Console → Firestore → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Colección users
+    match /users/{userId} {
+
+      // Cualquier usuario autenticado puede leer su propio documento
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Un usuario puede crear su propio documento (al registrarse)
+      // pero NO puede asignarse el rol "admin"
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'user';
+
+      // Un usuario puede actualizar su propio documento
+      // pero NO puede cambiarse el rol a sí mismo
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role;
+
+      // Solo un admin puede leer CUALQUIER usuario y cambiar roles
+      allow read, write: if request.auth != null
+                         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+  }
+}

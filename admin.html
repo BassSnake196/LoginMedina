@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin — Sistema CMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e2e0da;
+      --text: #1a1916;
+      --muted: #6b6860;
+      --accent: #1a1916;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    body.ready { opacity: 1; }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+
+    .badge-admin {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #fff3e0;
+      color: #e65100;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-logout {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .btn-logout:hover { border-color: var(--accent); color: var(--text); }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    .page-header { margin-bottom: 36px; }
+
+    .page-header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+
+    .page-header p { font-size: 14px; color: var(--muted); }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--muted);
+      padding: 12px 20px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px 20px;
+      font-size: 14px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafaf8; }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .role-badge.user { background: #e8f5e9; color: #2e7d32; }
+    .role-badge.admin { background: #fff3e0; color: #e65100; }
+
+    .role-select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .role-select:focus { border-color: var(--accent); }
+
+    .btn-save {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-save:hover { opacity: 0.85; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: 9px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    .empty { text-align: center; color: var(--muted); padding: 32px; font-size: 14px; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<nav>
+  <span class="nav-brand">Sistema CMS — Admin</span>
+  <div class="nav-right">
+    <span class="badge-admin">Admin</span>
+    <button class="btn-logout" onclick="handleLogout()">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1>Gestión de usuarios</h1>
+    <p>Asigna o cambia roles. Los cambios aplican en el siguiente inicio de sesión del usuario.</p>
+  </div>
+
+  <div class="section-title">Todos los usuarios</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol actual</th>
+        <th>Cambiar rol</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="users-tbody">
+      <tr><td colspan="5" class="empty">Cargando usuarios...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    collection, getDocs, doc, getDoc, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  let currentUid = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+      // No es admin → redirigir al dashboard
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    currentUid = user.uid;
+    await loadUsers();
+    document.getElementById('loading').style.display = 'none';
+    document.body.classList.add('ready');
+  });
+
+  async function loadUsers() {
+    const snapshot = await getDocs(collection(db, 'users'));
+    const tbody = document.getElementById('users-tbody');
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No hay usuarios registrados.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    snapshot.forEach((docSnap) => {
+      const u = docSnap.data();
+      const isMe = docSnap.id === currentUid;
+      const date = u.createdAt
+        ? new Date(u.createdAt.seconds * 1000).toLocaleDateString('es-MX')
+        : '—';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          ${u.name || '—'}
+          ${isMe ? '<span style="font-size:11px;color:var(--muted);margin-left:6px;">(tú)</span>' : ''}
+        </td>
+        <td style="color:var(--muted)">${u.email}</td>
+        <td>
+          <span class="role-badge ${u.role}">${u.role}</span>
+        </td>
+        <td>
+          <select class="role-select" id="select-${docSnap.id}" ${isMe ? 'disabled' : ''}>
+            <option value="user" ${u.role === 'user' ? 'selected' : ''}>user</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
+          </select>
+        </td>
+        <td>
+          <button
+            class="btn-save"
+            id="btn-${docSnap.id}"
+            onclick="saveRole('${docSnap.id}')"
+            ${isMe ? 'disabled' : ''}
+          >
+            Guardar
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.saveRole = async (uid) => {
+    const select = document.getElementById(`select-${uid}`);
+    const btn = document.getElementById(`btn-${uid}`);
+    const newRole = select.value;
+
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      await updateDoc(doc(db, 'users', uid), { role: newRole });
+      showToast(`Rol actualizado a "${newRole}"`);
+      await loadUsers(); // refrescar tabla
+    } catch (e) {
+      showToast('Error al guardar el rol');
+      btn.disabled = false;
+      btn.textContent = 'Guardar';
+    }
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  window.handleLogout = async () => {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  };
+</script>
+</body>
+</html>

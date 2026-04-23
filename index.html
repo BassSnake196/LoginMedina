@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso — Sistema CMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e2e0da;
+      --text: #1a1916;
+      --muted: #6b6860;
+      --accent: #1a1916;
+      --accent-hover: #3d3b36;
+      --error-bg: #fdf2f2;
+      --error-border: #e8b4b4;
+      --error-text: #8b2020;
+      --success-bg: #f2fdf5;
+      --success-border: #b4e0c0;
+      --success-text: #1a6b38;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo svg { width: 18px; height: 18px; fill: #fff; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 8px;
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: #b8b6b0; }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s, opacity 0.15s;
+      letter-spacing: 0.1px;
+    }
+
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .alert.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); display: block; }
+    .alert.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); display: block; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  </div>
+  <h1>Sistema CMS</h1>
+  <p class="subtitle">Accede a tu cuenta para continuar</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login')">Iniciar sesión</button>
+    <button class="tab" onclick="switchTab('register')">Registrarse</button>
+  </div>
+
+  <div id="alert" class="alert"></div>
+
+  <!-- LOGIN -->
+  <div id="panel-login" class="panel active">
+    <div class="form-group">
+      <label for="login-email">Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="tu@correo.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="login-password">Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" id="btn-login" onclick="handleLogin()">Iniciar sesión</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="panel-register" class="panel">
+    <div class="form-group">
+      <label for="reg-name">Nombre completo</label>
+      <input type="text" id="reg-name" placeholder="Juan Pérez">
+    </div>
+    <div class="form-group">
+      <label for="reg-email">Correo electrónico</label>
+      <input type="email" id="reg-email" placeholder="tu@correo.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label for="reg-password">Contraseña</label>
+      <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <button class="btn" id="btn-register" onclick="handleRegister()">Crear cuenta</button>
+  </div>
+</div>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    doc, setDoc, getDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Si ya hay sesión activa, redirigir
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const role = userDoc.exists() ? userDoc.data().role : 'user';
+      window.location.href = role === 'admin' ? 'admin.html' : 'dashboard.html';
+    }
+  });
+
+  window.switchTab = (tab) => {
+    document.querySelectorAll('.tab').forEach((t, i) =>
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'))
+    );
+    document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+    document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+    clearAlert();
+  };
+
+  function showAlert(msg, type = 'error') {
+    const el = document.getElementById('alert');
+    el.textContent = msg;
+    el.className = `alert ${type}`;
+  }
+
+  function clearAlert() {
+    const el = document.getElementById('alert');
+    el.className = 'alert';
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.innerHTML = loading
+      ? '<span class="spinner"></span> Cargando...'
+      : btn.id === 'btn-login' ? 'Iniciar sesión' : 'Crear cuenta';
+  }
+
+  window.handleLogin = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) return showAlert('Completa todos los campos.');
+    setLoading('btn-login', true);
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const role = userDoc.exists() ? userDoc.data().role : 'user';
+      window.location.href = role === 'admin' ? 'admin.html' : 'dashboard.html';
+    } catch (e) {
+      setLoading('btn-login', false);
+      showAlert(firebaseError(e.code));
+    }
+  };
+
+  window.handleRegister = async () => {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    if (!name || !email || !password) return showAlert('Completa todos los campos.');
+    if (password.length < 6) return showAlert('La contraseña debe tener al menos 6 caracteres.');
+    setLoading('btn-register', true);
+    try {
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      // Guardar en Firestore con rol por defecto
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        name,
+        email,
+        role: 'user',       // rol por defecto — admin lo cambia manualmente
+        createdAt: serverTimestamp()
+      });
+      window.location.href = 'dashboard.html';
+    } catch (e) {
+      setLoading('btn-register', false);
+      showAlert(firebaseError(e.code));
+    }
+  };
+
+  function firebaseError(code) {
+    const errors = {
+      'auth/user-not-found': 'No existe una cuenta con ese correo.',
+      'auth/wrong-password': 'Contraseña incorrecta.',
+      'auth/email-already-in-use': 'Ya existe una cuenta con ese correo.',
+      'auth/invalid-email': 'El correo no tiene un formato válido.',
+      'auth/too-many-requests': 'Demasiados intentos fallidos. Intenta más tarde.',
+      'auth/weak-password': 'La contraseña es demasiado débil.',
+    };
+    return errors[code] || 'Ocurrió un error. Intenta de nuevo.';
+  }
+
+  // Enter para enviar
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const isLogin = document.getElementById('panel-login').classList.contains('active');
+      isLogin ? window.handleLogin() : window.handleRegister();
+    }
+  });
+</script>
+</body>
+</html>

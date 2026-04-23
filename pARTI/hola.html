@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Firebase Auth — Guía Completa</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0b0c10;
+  --surface:   #13141a;
+  --surface2:  #1a1b23;
+  --border:    #252630;
+  --border2:   #2e3040;
+  --accent:    #f97316;
+  --accent2:   #fb923c;
+  --blue:      #60a5fa;
+  --green:     #34d399;
+  --purple:    #a78bfa;
+  --yellow:    #fbbf24;
+  --red:       #f87171;
+  --text:      #e8eaf0;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --font-h:    'Playfair Display', serif;
+  --font-b:    'Space Grotesk', sans-serif;
+  --font-c:    'JetBrains Mono', monospace;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-b);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── NOISE ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: 260px; height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 32px 20px;
+  overflow-y: auto;
+  z-index: 100;
+}
+.sidebar-logo {
+  font-family: var(--font-b); font-weight: 700; font-size: 13px;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-logo .fire { font-size: 18px; }
+.sidebar-sub {
+  font-size: 11px; color: var(--muted); margin-bottom: 32px;
+  letter-spacing: .05em;
+}
+.nav-section {
+  font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 20px 0 8px; padding: 0 8px;
+}
+.nav-link {
+  display: block; padding: 8px 12px; border-radius: 8px;
+  font-size: 13px; color: var(--muted2); text-decoration: none;
+  transition: all .15s; margin-bottom: 2px; cursor: pointer;
+  border: none; background: none; width: 100%; text-align: left;
+  font-family: var(--font-b);
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,.05); }
+.nav-link.active { color: var(--accent); background: rgba(249,115,22,.08); }
+.nav-step {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--border); color: var(--muted); font-size: 10px;
+  font-weight: 700; margin-right: 8px; flex-shrink: 0;
+}
+
+/* ── MAIN ── */
+.main {
+  margin-left: 260px;
+  min-height: 100vh;
+}
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, #0b0c10 0%, #12121e 50%, #0f0e15 100%);
+  padding: 80px 60px 70px;
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -150px; right: -150px;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(249,115,22,.07) 0%, transparent 70%);
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -100px; left: 100px;
+  width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(96,165,250,.05) 0%, transparent 70%);
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.2);
+  border-radius: 50px; padding: 6px 16px; font-size: 12px;
+  color: var(--accent2); letter-spacing: .05em; font-weight: 600;
+  margin-bottom: 24px; position: relative; z-index: 1;
+}
+.hero h1 {
+  font-family: var(--font-h); font-weight: 900;
+  font-size: clamp(38px, 5vw, 62px); line-height: 1.05;
+  letter-spacing: -.02em; margin-bottom: 20px;
+  position: relative; z-index: 1;
+}
+.hero h1 span { color: var(--accent); }
+.hero p {
+  font-size: 17px; color: var(--muted2); max-width: 600px;
+  line-height: 1.7; position: relative; z-index: 1;
+}
+.hero-chips {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-top: 32px; position: relative; z-index: 1;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+}
+.chip-auth { background: rgba(96,165,250,.1); color: var(--blue); border: 1px solid rgba(96,165,250,.2); }
+.chip-db   { background: rgba(52,211,153,.1); color: var(--green); border: 1px solid rgba(52,211,153,.2); }
+.chip-rules{ background: rgba(167,139,250,.1); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
+.chip-sdk  { background: rgba(251,191,36,.1); color: var(--yellow); border: 1px solid rgba(251,191,36,.2); }
+
+/* ── CONTENT ── */
+.content { padding: 60px; max-width: 900px; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 72px; }
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, rgba(249,115,22,.3), transparent);
+}
+.section h2 {
+  font-family: var(--font-h); font-weight: 700; font-size: 32px;
+  letter-spacing: -.02em; margin-bottom: 16px;
+}
+.section > p { color: var(--muted2); margin-bottom: 24px; font-size: 15px; }
+
+/* ── CONCEPT CARDS ── */
+.concept-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; margin: 28px 0;
+}
+.concept-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px;
+  transition: border-color .2s, transform .2s;
+  position: relative; overflow: hidden;
+}
+.concept-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+}
+.concept-card:hover { transform: translateY(-3px); border-color: var(--border2); }
+.card-auth::before { background: var(--blue); }
+.card-db::before   { background: var(--green); }
+.card-rules::before{ background: var(--purple); }
+.card-sdk::before  { background: var(--yellow); }
+.card-claims::before { background: var(--red); }
+.concept-icon { font-size: 28px; margin-bottom: 12px; display: block; }
+.concept-card h3 {
+  font-family: var(--font-b); font-weight: 700; font-size: 15px;
+  margin-bottom: 8px;
+}
+.concept-card p { font-size: 13px; color: var(--muted2); line-height: 1.6; }
+.concept-card .tag {
+  display: inline-block; margin-top: 12px; padding: 3px 10px;
+  border-radius: 4px; font-size: 11px; font-weight: 700;
+  letter-spacing: .05em;
+}
+.tag-auth { background: rgba(96,165,250,.1); color: var(--blue); }
+.tag-db   { background: rgba(52,211,153,.1); color: var(--green); }
+.tag-rules{ background: rgba(167,139,250,.1); color: var(--purple); }
+.tag-sdk  { background: rgba(251,191,36,.1); color: var(--yellow); }
+.tag-claims { background: rgba(248,113,113,.1); color: var(--red); }
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px; margin: 28px 0;
+  overflow-x: auto;
+}
+.flow-title {
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 24px;
+}
+.flow-row {
+  display: flex; align-items: center; gap: 0;
+  flex-wrap: nowrap; min-width: 600px;
+}
+.flow-node {
+  flex-shrink: 0; border-radius: 10px; padding: 14px 18px;
+  font-size: 13px; font-weight: 600; text-align: center;
+  min-width: 130px;
+}
+.fn-user   { background: rgba(96,165,250,.1);  color: var(--blue);   border: 1px solid rgba(96,165,250,.25); }
+.fn-auth   { background: rgba(249,115,22,.1);  color: var(--accent2);border: 1px solid rgba(249,115,22,.25); }
+.fn-db     { background: rgba(52,211,153,.1);  color: var(--green);  border: 1px solid rgba(52,211,153,.25); }
+.fn-app    { background: rgba(167,139,250,.1); color: var(--purple); border: 1px solid rgba(167,139,250,.25); }
+.fn-rules  { background: rgba(248,113,113,.1); color: var(--red);    border: 1px solid rgba(248,113,113,.25); }
+.flow-arrow {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 0 4px; min-width: 60px;
+}
+.arrow-line {
+  width: 100%; height: 2px;
+  background: linear-gradient(to right, var(--border2), var(--border));
+  position: relative;
+}
+.arrow-line::after {
+  content: '▶'; position: absolute; right: -8px; top: -8px;
+  color: var(--muted); font-size: 10px;
+}
+.arrow-label {
+  font-size: 10px; color: var(--muted); margin-top: 6px;
+  white-space: nowrap; font-family: var(--font-c);
+}
+.flow-sub {
+  margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap;
+}
+.flow-sub-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: rgba(255,255,255,.02); border-radius: 8px;
+  padding: 12px 14px; flex: 1; min-width: 180px;
+}
+.fsi-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--border2); color: var(--muted2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.fsi-text { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+.fsi-text strong { color: var(--text); display: block; font-size: 13px; margin-bottom: 2px; }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: #0d0e14; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin: 20px 0;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; background: rgba(255,255,255,.025);
+  border-bottom: 1px solid var(--border);
+}
+.code-filename {
+  font-family: var(--font-c); font-size: 12px; color: var(--muted2);
+  display: flex; align-items: center; gap: 8px;
+}
+.code-lang {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em;
+  padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+}
+.lang-js  { background: rgba(251,191,36,.1); color: var(--yellow); }
+.lang-ts  { background: rgba(96,165,250,.1); color: var(--blue); }
+.lang-rules { background: rgba(167,139,250,.1); color: var(--purple); }
+.lang-json{ background: rgba(52,211,153,.1); color: var(--green); }
+.code-body {
+  padding: 22px 24px; overflow-x: auto;
+  font-family: var(--font-c); font-size: 13px; line-height: 1.8;
+}
+.code-body pre { white-space: pre; }
+
+/* Syntax highlighting */
+.kw  { color: #c792ea; }   /* keywords */
+.fn  { color: #82aaff; }   /* functions */
+.str { color: #c3e88d; }   /* strings */
+.cmt { color: #546e7a; font-style: italic; }  /* comments */
+.num { color: #f78c6c; }   /* numbers */
+.var { color: #ffcb6b; }   /* variables */
+.obj { color: #89ddff; }   /* object access */
+.type{ color: #f07178; }   /* types/keys */
+.ann { color: var(--accent2); } /* annotations */
+
+/* ── STEP CARDS ── */
+.steps { display: flex; flex-direction: column; gap: 0; margin: 28px 0; }
+.step-item {
+  display: flex; gap: 0; position: relative;
+}
+.step-left {
+  display: flex; flex-direction: column; align-items: center;
+  margin-right: 20px; flex-shrink: 0;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-b); font-weight: 700; font-size: 14px;
+  color: var(--accent); flex-shrink: 0; z-index: 1;
+}
+.step-line {
+  width: 2px; flex: 1; background: var(--border); margin: 4px 0;
+  min-height: 20px;
+}
+.step-item:last-child .step-line { display: none; }
+.step-content {
+  padding: 4px 0 36px; flex: 1;
+}
+.step-content h3 {
+  font-family: var(--font-b); font-weight: 700; font-size: 16px;
+  margin-bottom: 8px; color: var(--text);
+}
+.step-content p { font-size: 14px; color: var(--muted2); line-height: 1.65; margin-bottom: 12px; }
+
+/* ── FIRESTORE SCHEMA ── */
+.schema-visual {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px; margin: 24px 0;
+  font-family: var(--font-c); font-size: 13px;
+}
+.schema-title {
+  font-family: var(--font-b); font-size: 12px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 20px;
+}
+.schema-collection {
+  display: flex; align-items: flex-start; gap: 0;
+}
+.schema-col-icon {
+  font-size: 20px; margin-right: 12px; margin-top: 2px;
+}
+.schema-col-name {
+  color: var(--yellow); font-weight: 700; font-size: 15px;
+  margin-bottom: 12px; font-family: var(--font-b);
+}
+.schema-doc {
+  background: rgba(255,255,255,.025); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 20px; margin-left: 32px;
+  margin-bottom: 10px;
+}
+.schema-doc-id {
+  color: var(--accent2); font-size: 12px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.schema-field {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; font-size: 13px;
+}
+.sf-key   { color: var(--blue); min-width: 80px; }
+.sf-type  { color: var(--muted); font-size: 11px; }
+.sf-value { color: var(--green); }
+.sf-role  {
+  color: var(--red); font-weight: 700;
+  background: rgba(248,113,113,.1); padding: 2px 8px; border-radius: 4px;
+}
+.sf-highlight {
+  margin-left: 32px; padding: 10px 14px;
+  background: rgba(249,115,22,.06); border: 1px solid rgba(249,115,22,.15);
+  border-radius: 8px; font-size: 12px; color: var(--accent2);
+  display: flex; gap: 8px; align-items: flex-start;
+}
+
+/* ── PERMISSION TABLE ── */
+.perm-table-wrap {
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin: 24px 0;
+}
+.perm-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.perm-table th {
+  background: var(--surface); padding: 14px 18px;
+  text-align: left; font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border);
+}
+.perm-table td {
+  padding: 13px 18px; border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.perm-table tr:last-child td { border-bottom: none; }
+.perm-table tr:hover td { background: rgba(255,255,255,.02); }
+.perm-role {
+  font-weight: 700; font-size: 12px; padding: 3px 10px;
+  border-radius: 4px; letter-spacing: .04em;
+}
+.r-admin  { background: rgba(248,113,113,.12); color: var(--red); }
+.r-editor { background: rgba(96,165,250,.12);  color: var(--blue); }
+.r-viewer { background: rgba(52,211,153,.12);  color: var(--green); }
+.pcheck { color: var(--green); font-size: 16px; }
+.pcross { color: var(--red);   font-size: 16px; }
+
+/* ── CALLOUT ── */
+.callout {
+  border-radius: 12px; padding: 18px 22px;
+  margin: 20px 0; display: flex; gap: 14px;
+  align-items: flex-start;
+}
+.callout-warn {
+  background: rgba(251,191,36,.07);
+  border: 1px solid rgba(251,191,36,.2);
+}
+.callout-info {
+  background: rgba(96,165,250,.07);
+  border: 1px solid rgba(96,165,250,.2);
+}
+.callout-danger {
+  background: rgba(248,113,113,.07);
+  border: 1px solid rgba(248,113,113,.2);
+}
+.callout-success {
+  background: rgba(52,211,153,.07);
+  border: 1px solid rgba(52,211,153,.2);
+}
+.callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { font-size: 13px; line-height: 1.65; color: var(--muted2); }
+.callout-body strong { color: var(--text); display: block; margin-bottom: 4px; font-size: 14px; }
+
+/* ── REPLACE MAP ── */
+.replace-map {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; margin: 24px 0;
+}
+.rm-header {
+  padding: 14px 20px;
+  background: rgba(249,115,22,.06); border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent2);
+  display: flex; align-items: center; gap: 10px;
+}
+.rm-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.03);
+  gap: 20px;
+}
+.rm-row:last-child { border-bottom: none; }
+.rm-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 6px;
+}
+.rm-before { font-family: var(--font-c); font-size: 12px; color: var(--red); line-height: 1.5; }
+.rm-after  { font-family: var(--font-c); font-size: 12px; color: var(--green); line-height: 1.5; }
+
+/* ── SECURITY LAYERS ── */
+.layers {
+  display: flex; flex-direction: column; gap: 10px; margin: 24px 0;
+}
+.layer-item {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 20px;
+  transition: border-color .2s;
+}
+.layer-item:hover { border-color: var(--border2); }
+.layer-num {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; flex-shrink: 0;
+}
+.layer-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.layer-body p  { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+
+/* ── COMPARISON ── */
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; margin: 24px 0;
+}
+.compare-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.compare-card h4 {
+  font-size: 14px; font-weight: 700; margin-bottom: 14px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.compare-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 13px; color: var(--muted2);
+}
+.ci-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 80px; padding: 40px 0;
+  border-top: 1px solid var(--border);
+  text-align: center; color: var(--muted); font-size: 13px;
+}
+.footer strong { color: var(--text); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media(max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .hero, .content { padding: 40px 24px; }
+  .rm-row { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+}
+
+/* Anchor offset for fixed sidebar */
+[id] { scroll-margin-top: 32px; }
+</style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─────────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-logo"><span class="fire">🔥</span> Firebase Guide</div>
+  <div class="sidebar-sub">Guía de autenticación y permisos</div>
+
+  <div class="nav-section">Introducción</div>
+  <a class="nav-link" href="#intro">¿Qué es Firebase?</a>
+  <a class="nav-link" href="#componentes">Los 4 componentes</a>
+  <a class="nav-link" href="#flujo">Flujo de autenticación</a>
+
+  <div class="nav-section">Implementación</div>
+  <a class="nav-link" href="#paso1"><span class="nav-step">1</span>Crear proyecto</a>
+  <a class="nav-link" href="#paso2"><span class="nav-step">2</span>Configuración SDK</a>
+  <a class="nav-link" href="#paso3"><span class="nav-step">3</span>Estructura Firestore</a>
+  <a class="nav-link" href="#paso4"><span class="nav-step">4</span>Los 4 reemplazos</a>
+
+  <div class="nav-section">Seguridad</div>
+  <a class="nav-link" href="#permisos">Tabla de permisos</a>
+  <a class="nav-link" href="#rules">Security Rules</a>
+  <a class="nav-link" href="#claims">Custom Claims</a>
+  <a class="nav-link" href="#capas">Capas de seguridad</a>
+</nav>
+
+<!-- ─── MAIN ─────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🔥 Firebase Authentication + Firestore</div>
+    <h1>Cómo conectar<br/><span>Firebase</span> al sistema</h1>
+    <p>Guía completa: qué hace cada parte, cómo funciona en el código NEXUS, y cómo proteger los datos con Security Rules y Custom Claims.</p>
+    <div class="hero-chips">
+      <span class="chip chip-auth">🔑 Authentication</span>
+      <span class="chip chip-db">🗄 Firestore</span>
+      <span class="chip chip-rules">🛡 Security Rules</span>
+      <span class="chip chip-sdk">⚙️ SDK Web</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 1 — ¿QUÉ ES FIREBASE?
+    ══════════════════════════════════════ -->
+    <div class="section" id="intro">
+      <div class="section-label">Sección 01</div>
+      <h2>¿Qué es Firebase?</h2>
+      <p>Firebase es la plataforma Backend-as-a-Service (BaaS) de Google. En lugar de construir y mantener tu propio servidor, Firebase te da servidores, base de datos y autenticación listos para usar desde el navegador.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          <strong>¿Por qué usarlo en NEXUS?</strong>
+          El sistema actual usa usuarios y contraseñas hardcodeados en el JS (MOCK_USERS). Firebase reemplaza eso con una base de datos real, sesiones persistentes y seguridad del lado del servidor — sin escribir un backend propio.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 2 — LOS 4 COMPONENTES
+    ══════════════════════════════════════ -->
+    <div class="section" id="componentes">
+      <div class="section-label">Sección 02</div>
+      <h2>Los 4 componentes en este proyecto</h2>
+      <p>NEXUS usa solo dos servicios de Firebase, pero es importante entender los cuatro conceptos que interactúan entre sí.</p>
+
+      <div class="concept-grid">
+
+        <div class="concept-card card-auth">
+          <span class="concept-icon">🔑</span>
+          <h3>Firebase Authentication</h3>
+          <p>Gestiona el <strong>quién</strong>. Verifica email/contraseña y devuelve un <em>UID</em> único por usuario. También maneja sesiones: si cierras el navegador y lo abres, sigues logueado.</p>
+          <span class="tag tag-auth">Auth Service</span>
+        </div>
+
+        <div class="concept-card card-db">
+          <span class="concept-icon">🗄</span>
+          <h3>Firestore Database</h3>
+          <p>Base de datos NoSQL en tiempo real. Aquí guardamos el <strong>rol</strong> de cada usuario. Un documento por usuario, identificado por su UID de Auth.</p>
+          <span class="tag tag-db">Base de datos</span>
+        </div>
+
+        <div class="concept-card card-rules">
+          <span class="concept-icon">🛡</span>
+          <h3>Security Rules</h3>
+          <p>Reglas que viven en el servidor de Firebase. Deciden quién puede leer o escribir qué documentos, aunque alguien intente saltarse el código del frontend.</p>
+          <span class="tag tag-rules">Servidor</span>
+        </div>
+
+        <div class="concept-card card-sdk">
+          <span class="concept-icon">⚙️</span>
+          <h3>Firebase Web SDK</h3>
+          <p>La librería JavaScript que importamos en el HTML. Es el "puente" entre nuestro código frontend y los servidores de Firebase en Google Cloud.</p>
+          <span class="tag tag-sdk">Frontend</span>
+        </div>
+
+        <div class="concept-card card-claims">
+          <span class="concept-icon">🎫</span>
+          <h3>Custom Claims</h3>
+          <p>Datos extra dentro del <strong>JWT token</strong> del usuario. Permiten incrustar el rol directamente en el token para máxima seguridad, sin leer Firestore cada vez.</p>
+          <span class="tag tag-claims">Producción</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 3 — FLUJO
+    ══════════════════════════════════════ -->
+    <div class="section" id="flujo">
+      <div class="section-label">Sección 03</div>
+      <h2>Flujo completo de autenticación</h2>
+      <p>Cuando un usuario pulsa "Iniciar sesión", esto es exactamente lo que ocurre por debajo:</p>
+
+      <div class="flow-diagram">
+        <div class="flow-title">📊 Diagrama de flujo — Login con Firebase</div>
+        <div class="flow-row">
+          <div class="flow-node fn-user">👤<br/>Usuario<br/><small style="font-size:11px;font-weight:400">ingresa email + pass</small></div>
+          <div class="flow-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-label">signIn()</div>
+          </div>
+          <div class="flow-node fn-auth">🔑<br/>Firebase Auth<br/><small style="font-size:11px;font-weight:400">verifica credenciales</small></div>
+          <div class="flow-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-label">UID + token</div>
+          </div>
+          <div class="flow-node fn-db">🗄<br/>Firestore<br/><small style="font-size:11px;font-weight:400">lee campo "role"</small></div>
+          <div class="flow-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-label">{ name, role }</div>
+          </div>
+          <div class="flow-node fn-app">🖥<br/>Dashboard<br/><small style="font-size:11px;font-weight:400">renderiza según rol</small></div>
+        </div>
+
+        <div class="flow-sub">
+          <div class="flow-sub-item">
+            <div class="fsi-num">1</div>
+            <div class="fsi-text">
+              <strong>signInWithEmailAndPassword</strong>
+              Auth verifica que el email y contraseña existen. Si son incorrectos, lanza un error. Si son correctos, devuelve un objeto <code>user</code> con un <code>uid</code> único.
+            </div>
+          </div>
+          <div class="flow-sub-item">
+            <div class="fsi-num">2</div>
+            <div class="fsi-text">
+              <strong>getDoc(doc(db, "users", uid))</strong>
+              Con el UID obtenido, buscamos en Firestore el documento del usuario para leer su nombre y su rol (admin / editor / viewer).
+            </div>
+          </div>
+          <div class="flow-sub-item">
+            <div class="fsi-num">3</div>
+            <div class="fsi-text">
+              <strong>ROLE_CONFIG[role]</strong>
+              Con el rol ya en el estado de la app, el dashboard muestra u oculta secciones, botones y estadísticas según los permisos configurados en ROLE_CONFIG.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Auth y Firestore son dos servicios separados</strong>
+          Auth solo sabe email + contraseña. Firestore sabe el nombre y el rol. Por eso necesitamos los dos: Auth para verificar identidad, Firestore para obtener datos del perfil.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PASO 1 — CREAR PROYECTO
+    ══════════════════════════════════════ -->
+    <div class="section" id="paso1">
+      <div class="section-label">Paso 01</div>
+      <h2>Crear el proyecto en Firebase Console</h2>
+
+      <div class="steps">
+        <div class="step-item">
+          <div class="step-left">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Ir a console.firebase.google.com</h3>
+            <p>Inicia sesión con tu cuenta de Google y haz clic en <strong>"Agregar proyecto"</strong>. Dale un nombre (ej: <em>nexus-app</em>) y sigue los pasos del wizard.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-left">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Habilitar Authentication → Email/Password</h3>
+            <p>En el menú lateral: <strong>Build → Authentication → Sign-in method → Email/Password → Habilitar</strong>. Este es el proveedor que usa NEXUS.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-left">
+            <div class="step-num">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Crear Firestore Database</h3>
+            <p>En el menú: <strong>Build → Firestore Database → Crear base de datos</strong>. Elige <strong>modo de producción</strong> (no prueba) para que las Security Rules estén activas desde el inicio.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-left">
+            <div class="step-num">4</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Registrar la app web</h3>
+            <p>Ve a <strong>Configuración del proyecto (⚙️) → Tus apps → Agregar app → Web (&lt;/&gt;)</strong>. Firebase te dará el objeto <code>firebaseConfig</code> con todas las claves necesarias.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PASO 2 — CONFIG SDK
+    ══════════════════════════════════════ -->
+    <div class="section" id="paso2">
+      <div class="section-label">Paso 02</div>
+      <h2>Pegar la configuración del SDK</h2>
+      <p>Al inicio del HTML hay un bloque comentado. Descoméntalo y reemplaza los valores placeholder por los reales que Firebase te da:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">📄 index.html — &lt;head&gt; bloque comentado</span>
+          <span class="code-lang lang-js">JavaScript</span>
+        </div>
+        <div class="code-body"><pre><span class="cmt">/* ❌ ANTES — bloque comentado con valores placeholder */</span>
+<span class="cmt">// const firebaseConfig = {</span>
+<span class="cmt">//   apiKey: "TU_API_KEY",</span>
+<span class="cmt">//   authDomain: "TU_PROYECTO.firebaseapp.com",</span>
+<span class="cmt">//   projectId: "TU_PROYECTO_ID",</span>
+<span class="cmt">// };</span>
+
+<span class="cmt">/* ✅ DESPUÉS — valores reales de Firebase Console */</span>
+<span class="kw">import</span> { <span class="fn">initializeApp</span> } <span class="kw">from</span> <span class="str">"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"</span>;
+<span class="kw">import</span> { <span class="fn">getAuth</span> } <span class="kw">from</span> <span class="str">"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"</span>;
+<span class="kw">import</span> { <span class="fn">getFirestore</span> } <span class="kw">from</span> <span class="str">"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"</span>;
+
+<span class="kw">const</span> <span class="var">firebaseConfig</span> = {
+  <span class="type">apiKey</span>:            <span class="str">"AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</span>,
+  <span class="type">authDomain</span>:        <span class="str">"nexus-app.firebaseapp.com"</span>,
+  <span class="type">projectId</span>:         <span class="str">"nexus-app"</span>,
+  <span class="type">storageBucket</span>:     <span class="str">"nexus-app.appspot.com"</span>,
+  <span class="type">messagingSenderId</span>: <span class="str">"123456789012"</span>,
+  <span class="type">appId</span>:             <span class="str">"1:123456789012:web:abcdef1234567890"</span>
+};
+
+<span class="kw">const</span> <span class="var">app</span>  = <span class="fn">initializeApp</span>(<span class="var">firebaseConfig</span>);
+<span class="kw">const</span> <span class="var">auth</span> = <span class="fn">getAuth</span>(<span class="var">app</span>);     <span class="cmt">// instancia de autenticación</span>
+<span class="kw">const</span> <span class="var">db</span>   = <span class="fn">getFirestore</span>(<span class="var">app</span>); <span class="cmt">// instancia de Firestore</span>
+
+<span class="cmt">// Exponemos en window para usarlos desde el script principal</span>
+<span class="var">window</span><span class="obj">.__firebaseAuth</span> = <span class="var">auth</span>;
+<span class="var">window</span><span class="obj">.__firebaseDB</span>   = <span class="var">db</span>;</pre></div>
+      </div>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">🔍</span>
+        <div class="callout-body">
+          <strong>¿Qué es cada clave?</strong>
+          <code>apiKey</code> no es una contraseña — es un identificador público para que Firebase sepa a qué proyecto conectarse. La seguridad real la ponen las <strong>Security Rules</strong>, no esta clave. El <code>projectId</code> es el nombre único de tu proyecto en Firebase.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PASO 3 — FIRESTORE SCHEMA
+    ══════════════════════════════════════ -->
+    <div class="section" id="paso3">
+      <div class="section-label">Paso 03</div>
+      <h2>Estructura de Firestore</h2>
+      <p>Firestore es una base de datos de documentos. Piensa en <strong>colecciones</strong> como carpetas y <strong>documentos</strong> como archivos JSON dentro. El campo <code>role</code> es el que controla TODO en NEXUS.</p>
+
+      <div class="schema-visual">
+        <div class="schema-title">📁 Estructura de colecciones en Firestore</div>
+        <div class="schema-collection">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <span class="schema-col-icon">📁</span>
+              <span class="schema-col-name">users  <span style="color:var(--muted);font-size:12px;font-weight:400">— colección</span></span>
+            </div>
+
+            <div class="schema-doc">
+              <div class="schema-doc-id">
+                📄 <span style="color:var(--accent2)">uid-del-usuario-1</span>
+                <span style="color:var(--muted);font-size:11px">(ID = UID de Firebase Auth)</span>
+              </div>
+              <div class="schema-field">
+                <span class="sf-key">name</span>
+                <span class="sf-type">string</span>
+                <span class="sf-value">"Carlos Méndez"</span>
+              </div>
+              <div class="schema-field">
+                <span class="sf-key">email</span>
+                <span class="sf-type">string</span>
+                <span class="sf-value">"admin@nexus.com"</span>
+              </div>
+              <div class="schema-field">
+                <span class="sf-key">role</span>
+                <span class="sf-type">string</span>
+                <span class="sf-role">⭐ "admin"</span>
+              </div>
+              <div class="schema-field">
+                <span class="sf-key">createdAt</span>
+                <span class="sf-type">timestamp</span>
+                <span style="color:var(--muted2)">2025-01-15T10:30:00Z</span>
+              </div>
+            </div>
+
+            <div class="schema-doc">
+              <div class="schema-doc-id">📄 <span style="color:var(--accent2)">uid-del-usuario-2</span></div>
+              <div class="schema-field">
+                <span class="sf-key">name</span>
+                <span class="sf-type">string</span>
+                <span class="sf-value">"Ana García"</span>
+              </div>
+              <div class="schema-field">
+                <span class="sf-key">role</span>
+                <span class="sf-type">string</span>
+                <span class="sf-role" style="color:var(--blue);background:rgba(96,165,250,.1)">"editor"</span>
+              </div>
+            </div>
+
+            <div class="sf-highlight">
+              ⚠️ <div>El <strong>ID del documento debe ser el UID de Auth</strong> — así cuando el usuario hace login, hacemos <code>getDoc("users/" + user.uid)</code> y encontramos sus datos directamente, sin buscar.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">📄 Crear usuario en Firestore al registrarse</span>
+          <span class="code-lang lang-js">JavaScript</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">import</span> { <span class="fn">createUserWithEmailAndPassword</span> } <span class="kw">from</span> <span class="str">"firebase/auth"</span>;
+<span class="kw">import</span> { <span class="fn">doc</span>, <span class="fn">setDoc</span>, <span class="fn">serverTimestamp</span> } <span class="kw">from</span> <span class="str">"firebase/firestore"</span>;
+
+<span class="kw">async function</span> <span class="fn">registerUser</span>(<span class="var">email</span>, <span class="var">password</span>, <span class="var">name</span>) {
+  <span class="cmt">// 1. Crear en Firebase Auth (email + contraseña)</span>
+  <span class="kw">const</span> <span class="var">cred</span> = <span class="kw">await</span> <span class="fn">createUserWithEmailAndPassword</span>(<span class="var">auth</span>, <span class="var">email</span>, <span class="var">password</span>);
+
+  <span class="cmt">// 2. Guardar perfil en Firestore con el rol por defecto</span>
+  <span class="kw">await</span> <span class="fn">setDoc</span>(<span class="fn">doc</span>(<span class="var">db</span>, <span class="str">"users"</span>, <span class="var">cred</span><span class="obj">.user.uid</span>), {
+    <span class="type">name</span>:      <span class="var">name</span>,
+    <span class="type">email</span>:     <span class="var">email</span>,
+    <span class="type">role</span>:      <span class="str">"viewer"</span>,  <span class="cmt">// rol por defecto — admin lo cambia después</span>
+    <span class="type">createdAt</span>: <span class="fn">serverTimestamp</span>()
+  });
+}</pre></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PASO 4 — LOS 4 REEMPLAZOS
+    ══════════════════════════════════════ -->
+    <div class="section" id="paso4">
+      <div class="section-label">Paso 04</div>
+      <h2>Los 3 comentarios "🔥 REEMPLAZAR"</h2>
+      <p>El código tiene exactamente 3 puntos marcados con ese emoji. Aquí está qué hace cada uno y por qué es necesario:</p>
+
+      <div class="replace-map">
+        <div class="rm-header">🔥 Mapa de reemplazos — Mock → Firebase real</div>
+
+        <div class="rm-row">
+          <div>
+            <div class="rm-label">❌ Código actual (mock)</div>
+            <div class="rm-before">// Simula que ya hay sesión iniciada
+setTimeout(() => {
+  showLogin();  // siempre muestra el login
+}, 1400);</div>
+          </div>
+          <div>
+            <div class="rm-label">✅ Con Firebase — onAuthStateChanged</div>
+            <div class="rm-after">onAuthStateChanged(auth, async user => {
+  if (user) {
+    // sesión persistente detectada
+    const snap = await getDoc(
+      doc(db, "users", user.uid)
+    );
+    currentUser = { uid: user.uid,
+      name: snap.data().name,
+      role: snap.data().role };
+    openDashboard();
+  } else {
+    showLogin();
+  }
+});</div>
+          </div>
+        </div>
+
+        <div class="rm-row">
+          <div>
+            <div class="rm-label">❌ Código actual (mock)</div>
+            <div class="rm-before">// Busca en objeto JS hardcodeado
+const mockUser = MOCK_USERS[email];
+if (mockUser && mockUser.password === pass) {
+  currentUser = { ...mockUser };
+  openDashboard();
+}</div>
+          </div>
+          <div>
+            <div class="rm-label">✅ Con Firebase — signIn</div>
+            <div class="rm-after">const cred = await signInWithEmailAndPassword(
+  auth, email, password
+);
+const snap = await getDoc(
+  doc(db, "users", cred.user.uid)
+);
+currentUser = {
+  uid:  cred.user.uid,
+  name: snap.data().name,
+  role: snap.data().role
+};
+openDashboard();</div>
+          </div>
+        </div>
+
+        <div class="rm-row">
+          <div>
+            <div class="rm-label">❌ Código actual (mock)</div>
+            <div class="rm-before">// Solo limpia la variable local
+currentUser = null;
+// no hay sesión real que cerrar</div>
+          </div>
+          <div>
+            <div class="rm-label">✅ Con Firebase — signOut</div>
+            <div class="rm-after">// Invalida el token en el servidor
+await signOut(auth);
+currentUser = null;
+// onAuthStateChanged se dispara
+// automáticamente y muestra el login</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout callout-success">
+        <span class="callout-icon">✅</span>
+        <div class="callout-body">
+          <strong>¿Qué es onAuthStateChanged y por qué es tan importante?</strong>
+          Es un listener que Firebase dispara automáticamente al cargar la página. Si el usuario ya inició sesión antes (el token JWT no ha expirado), lo detecta y abre el dashboard directamente — sin que el usuario tenga que volver a hacer login. Esto es lo que hace que la experiencia sea "profesional".
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PERMISOS — TABLA
+    ══════════════════════════════════════ -->
+    <div class="section" id="permisos">
+      <div class="section-label">Seguridad 01</div>
+      <h2>Tabla de permisos por rol</h2>
+      <p>El campo <code>role</code> en Firestore determina qué puede hacer cada usuario. Esta tabla muestra la lógica implementada en <code>ROLE_CONFIG</code>:</p>
+
+      <div class="perm-table-wrap">
+        <table class="perm-table">
+          <thead>
+            <tr>
+              <th>Acción</th>
+              <th><span class="perm-role r-admin">ADMIN</span></th>
+              <th><span class="perm-role r-editor">EDITOR</span></th>
+              <th><span class="perm-role r-viewer">VIEWER</span></th>
+              <th>Dónde se controla</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ver el dashboard</td>
+              <td class="pcheck">✓</td><td class="pcheck">✓</td><td class="pcheck">✓</td>
+              <td style="color:var(--muted);font-size:12px">Firebase Auth (login requerido)</td>
+            </tr>
+            <tr>
+              <td>Ver estadísticas</td>
+              <td class="pcheck">✓</td><td class="pcheck">✓</td><td class="pcheck">✓</td>
+              <td style="color:var(--muted);font-size:12px">ROLE_CONFIG → stats array</td>
+            </tr>
+            <tr>
+              <td>Ver reportes</td>
+              <td class="pcheck">✓</td><td class="pcheck">✓</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">canSeeReports = false</td>
+            </tr>
+            <tr>
+              <td>Crear / editar contenido</td>
+              <td class="pcheck">✓</td><td class="pcheck">✓</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">canEdit = false + Firestore Rules</td>
+            </tr>
+            <tr>
+              <td>Eliminar contenido</td>
+              <td class="pcheck">✓</td><td class="pcross">✗</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">canDelete = false + Firestore Rules</td>
+            </tr>
+            <tr>
+              <td>Panel Admin (usuarios)</td>
+              <td class="pcheck">✓</td><td class="pcross">✗</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">canManageUsers = false</td>
+            </tr>
+            <tr>
+              <td>Cambiar roles de usuarios</td>
+              <td class="pcheck">✓</td><td class="pcross">✗</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">Firestore Rules (write users)</td>
+            </tr>
+            <tr>
+              <td>Exportar datos completos</td>
+              <td class="pcheck">✓</td><td class="pcross">✗</td><td class="pcross">✗</td>
+              <td style="color:var(--muted);font-size:12px">canManageUsers → botón oculto</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-danger">
+        <span class="callout-icon">🚨</span>
+        <div class="callout-body">
+          <strong>Los permisos del frontend no son suficientes</strong>
+          Ocultar un botón en el UI es UX, no seguridad. Un usuario malicioso puede llamar directamente a la API de Firestore desde la consola del navegador. Por eso las <strong>Security Rules son obligatorias</strong> — son la seguridad real.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         SECURITY RULES
+    ══════════════════════════════════════ -->
+    <div class="section" id="rules">
+      <div class="section-label">Seguridad 02</div>
+      <h2>Security Rules de Firestore</h2>
+      <p>Las Security Rules son el código que vive en los servidores de Firebase y verifica cada petición antes de permitirla. Se configuran en <strong>Firebase Console → Firestore → Reglas</strong>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">🛡 firestore.rules — Reglas de producción para NEXUS</span>
+          <span class="code-lang lang-rules">Rules v2</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">rules_version</span> = <span class="str">'2'</span>;
+<span class="kw">service</span> cloud.firestore {
+  <span class="kw">match</span> /databases/{database}/documents {
+
+    <span class="cmt">// ── Colección "users" ──────────────────────────────────</span>
+    <span class="kw">match</span> /users/{userId} {
+
+      <span class="cmt">// Un usuario puede leer su propio documento</span>
+      <span class="cmt">// Un admin puede leer cualquier documento</span>
+      <span class="kw">allow</span> read: <span class="kw">if</span> <span class="fn">request.auth.uid</span> == userId
+                  || <span class="fn">request.auth.token.role</span> == <span class="str">'admin'</span>;
+
+      <span class="cmt">// Solo admin puede escribir (cambiar roles, suspender)</span>
+      <span class="kw">allow</span> write: <span class="kw">if</span> <span class="fn">request.auth.token.role</span> == <span class="str">'admin'</span>;
+    }
+
+    <span class="cmt">// ── Colección "content" ────────────────────────────────</span>
+    <span class="kw">match</span> /content/{docId} {
+
+      <span class="cmt">// Cualquier usuario autenticado puede leer</span>
+      <span class="kw">allow</span> read: <span class="kw">if</span> <span class="fn">request.auth</span> != <span class="kw">null</span>;
+
+      <span class="cmt">// Admin y editor pueden crear/editar</span>
+      <span class="kw">allow</span> write: <span class="kw">if</span> <span class="fn">request.auth.token.role</span> <span class="kw">in</span> [<span class="str">'admin'</span>, <span class="str">'editor'</span>];
+
+      <span class="cmt">// Solo admin puede eliminar</span>
+      <span class="kw">allow</span> delete: <span class="kw">if</span> <span class="fn">request.auth.token.role</span> == <span class="str">'admin'</span>;
+    }
+
+    <span class="cmt">// Todo lo demás: acceso denegado por defecto</span>
+  }
+}</pre></div>
+      </div>
+
+      <div class="concept-grid" style="margin-top:20px">
+        <div class="concept-card" style="border-color:rgba(96,165,250,.2)">
+          <span class="concept-icon">🔍</span>
+          <h3>request.auth.uid</h3>
+          <p>El UID del usuario que hace la petición, verificado por Firebase. No se puede falsificar — viene del token JWT firmado.</p>
+        </div>
+        <div class="concept-card" style="border-color:rgba(167,139,250,.2)">
+          <span class="concept-icon">🎫</span>
+          <h3>request.auth.token.role</h3>
+          <p>El campo <code>role</code> dentro del Custom Claim del token. Más seguro que leer Firestore porque el token ya lo lleva incorporado.</p>
+        </div>
+        <div class="concept-card" style="border-color:rgba(52,211,153,.2)">
+          <span class="concept-icon">🚫</span>
+          <h3>Denegar por defecto</h3>
+          <p>Si ninguna regla hace <code>allow</code>, Firestore rechaza la petición. Siempre empieza denegando y permite solo lo necesario.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         CUSTOM CLAIMS
+    ══════════════════════════════════════ -->
+    <div class="section" id="claims">
+      <div class="section-label">Seguridad 03</div>
+      <h2>Custom Claims — Seguridad máxima</h2>
+      <p>En producción, el rol no debería vivir solo en un documento de Firestore que el usuario podría intentar editar. Los Custom Claims lo incrustan directamente en el token JWT firmado por Google.</p>
+
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4 style="color:var(--muted2)">🗄 Solo Firestore (básico)</h4>
+          <div class="compare-item"><span class="ci-icon">⚡</span>Fácil de implementar</div>
+          <div class="compare-item"><span class="ci-icon">⚡</span>No requiere backend</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--red)">⚠️</span>Lee Firestore en cada login</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--red)">⚠️</span>Reglas más complejas</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--red)">⚠️</span>Cambio de rol tarda</div>
+        </div>
+        <div class="compare-card" style="border-color:rgba(52,211,153,.2)">
+          <h4 style="color:var(--green)">🎫 Custom Claims (producción)</h4>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--green)">✓</span>Rol en el token JWT</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--green)">✓</span>Reglas más simples</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--green)">✓</span>No requiere leer DB</div>
+          <div class="compare-item"><span class="ci-icon" style="color:var(--green)">✓</span>Máxima seguridad</div>
+          <div class="compare-item"><span class="ci-icon">⚡</span>Requiere Admin SDK</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">⚙️ Cloud Function o servidor Node.js — Asignar rol</span>
+          <span class="code-lang lang-js">Node.js</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">const</span> <span class="var">admin</span> = <span class="fn">require</span>(<span class="str">"firebase-admin"</span>);
+
+<span class="cmt">// Esta función corre en TU servidor, nunca en el frontend</span>
+<span class="kw">async function</span> <span class="fn">assignRole</span>(<span class="var">uid</span>, <span class="var">role</span>) {
+  <span class="cmt">// Incrusta el rol en el JWT del usuario</span>
+  <span class="kw">await</span> <span class="var">admin</span><span class="obj">.auth</span>().<span class="fn">setCustomUserClaims</span>(<span class="var">uid</span>, { <span class="type">role</span>: <span class="var">role</span> });
+
+  <span class="cmt">// El cliente necesita refrescar su token para que tome efecto</span>
+  <span class="cmt">// Puedes forzarlo con: await auth.currentUser.getIdToken(true)</span>
+}
+
+<span class="cmt">// Ejemplo de uso</span>
+<span class="kw">await</span> <span class="fn">assignRole</span>(<span class="str">"uid-de-carlos"</span>, <span class="str">"admin"</span>);
+<span class="kw">await</span> <span class="fn">assignRole</span>(<span class="str">"uid-de-ana"</span>,    <span class="str">"editor"</span>);
+<span class="kw">await</span> <span class="fn">assignRole</span>(<span class="str">"uid-de-luis"</span>,   <span class="str">"viewer"</span>);</pre></div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>El Admin SDK solo corre en el servidor</strong>
+          Nunca incluyas el Admin SDK ni sus claves de servicio en el código del frontend. El código de frontend usa el SDK del cliente (<code>firebase/auth</code>), el servidor usa el Admin SDK (<code>firebase-admin</code>).
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         CAPAS DE SEGURIDAD
+    ══════════════════════════════════════ -->
+    <div class="section" id="capas">
+      <div class="section-label">Seguridad 04</div>
+      <h2>Las capas de seguridad</h2>
+      <p>La seguridad bien implementada tiene varias capas. Si una falla, las demás protegen. Aquí están las capas del sistema NEXUS de menor a mayor fortaleza:</p>
+
+      <div class="layers">
+        <div class="layer-item">
+          <div class="layer-num" style="background:rgba(107,114,128,.15);color:var(--muted)">1</div>
+          <div class="layer-body">
+            <h4>UI — Elementos ocultos o deshabilitados</h4>
+            <p>Los botones "Eliminar", el panel Admin y el tab de Reportes solo aparecen si el rol lo permite. Es la primera línea, pero <strong>no es seguridad real</strong> — es UX.</p>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num" style="background:rgba(251,191,36,.12);color:var(--yellow)">2</div>
+          <div class="layer-body">
+            <h4>Lógica JS — ROLE_CONFIG y canEdit / canDelete</h4>
+            <p>El objeto <code>ROLE_CONFIG</code> controla qué stats, tabs y acciones renderiza el código. Protege contra uso accidental, pero un developer con las DevTools puede saltárselo.</p>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num" style="background:rgba(96,165,250,.12);color:var(--blue)">3</div>
+          <div class="layer-body">
+            <h4>Firebase Authentication — Token JWT</h4>
+            <p>Sin un token válido, Firestore rechaza todas las peticiones. Nadie sin login puede leer ni escribir datos. Esta capa sí es real — vive en el servidor de Firebase.</p>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num" style="background:rgba(167,139,250,.12);color:var(--purple)">4</div>
+          <div class="layer-body">
+            <h4>Security Rules — Verificación server-side</h4>
+            <p>Aunque alguien tenga un token válido (está logueado), las Rules verifican que su rol le permita hacer esa operación específica. <strong>Esta es la capa más importante.</strong></p>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-num" style="background:rgba(52,211,153,.12);color:var(--green)">5</div>
+          <div class="layer-body">
+            <h4>Custom Claims — Rol incrustado en el JWT</h4>
+            <p>Para producción: el rol está firmado criptográficamente en el token por Google. Es imposible falsificarlo. Es la capa más robusta pero requiere un backend con Admin SDK.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-success">
+        <span class="callout-icon">🎯</span>
+        <div class="callout-body">
+          <strong>Resumen práctico para empezar</strong>
+          Para un MVP funcional, implementa las capas 1–4. La capa 5 (Custom Claims) es para cuando el producto ya tiene usuarios reales y necesitas seguridad de nivel empresarial. Las capas 3 y 4 juntas son suficientes para la mayoría de los proyectos.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Guía generada para el proyecto <strong>NEXUS</strong> — Firebase Authentication + Firestore + Security Rules<br/>
+      <span style="color:var(--border2)">—</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('[id]');
+const navLinks  = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

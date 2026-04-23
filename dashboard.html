@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Sistema CMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e2e0da;
+      --text: #1a1916;
+      --muted: #6b6860;
+      --accent: #1a1916;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    body.ready { opacity: 1; }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge.admin {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .user-name {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn-logout {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .btn-logout:hover { border-color: var(--accent); color: var(--text); }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    .page-header {
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .card-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      word-break: break-all;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:first-child { color: var(--muted); }
+    .info-row span:last-child { color: var(--text); font-weight: 500; }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div></div>
+
+<nav>
+  <span class="nav-brand">Sistema CMS</span>
+  <div class="nav-right">
+    <span id="nav-role" class="badge"></span>
+    <span id="nav-name" class="user-name"></span>
+    <button class="btn-logout" onclick="handleLogout()">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <h1 id="welcome">Bienvenido</h1>
+    <p>Información de tu cuenta</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">Nombre</div>
+      <div class="card-value" id="info-name">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Rol asignado</div>
+      <div class="card-value" id="info-role">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Correo electrónico</div>
+      <div class="card-value" id="info-email">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Registrado</div>
+      <div class="card-value" id="info-date">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Sesión activa</div>
+  <div class="info-box">
+    <div class="info-row">
+      <span>UID de Firebase</span>
+      <span id="info-uid">—</span>
+    </div>
+    <div class="info-row">
+      <span>Email verificado</span>
+      <span id="info-verified">—</span>
+    </div>
+    <div class="info-row">
+      <span>Último acceso</span>
+      <span id="info-last">—</span>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { auth, db } from './firebase-config.js';
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists()) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const data = userDoc.data();
+
+    // Llenar UI
+    const name = data.name || user.email;
+    document.getElementById('welcome').textContent = `Hola, ${name.split(' ')[0]}`;
+    document.getElementById('nav-name').textContent = name;
+    document.getElementById('nav-role').textContent = data.role;
+    document.getElementById('nav-role').classList.toggle('admin', data.role === 'admin');
+
+    document.getElementById('info-name').textContent = data.name || '—';
+    document.getElementById('info-email').textContent = data.email;
+    document.getElementById('info-role').textContent = data.role;
+    document.getElementById('info-date').textContent = data.createdAt
+      ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '—';
+
+    document.getElementById('info-uid').textContent = user.uid;
+    document.getElementById('info-verified').textContent = user.emailVerified ? 'Sí' : 'No';
+    document.getElementById('info-last').textContent = user.metadata.lastSignInTime
+      ? new Date(user.metadata.lastSignInTime).toLocaleString('es-MX')
+      : '—';
+
+    // Ocultar loading
+    document.getElementById('loading').style.display = 'none';
+    document.body.classList.add('ready');
+  });
+
+  window.handleLogout = async () => {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  };
+</script>
+</body>
+</html>
